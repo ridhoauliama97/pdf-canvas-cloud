@@ -164,7 +164,9 @@ function NewTemplateDialog({ companyId }: { companyId: string }) {
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>New template</DialogTitle>
-          <DialogDescription>Start from a document type, then customise the layout.</DialogDescription>
+          <DialogDescription>
+            Start from a document type, then customise the layout.
+          </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
           <div className="grid gap-2 sm:grid-cols-2">

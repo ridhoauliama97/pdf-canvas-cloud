@@ -57,7 +57,10 @@ export function EditorCanvas({
   zoom: number;
   onSelect: (id: string | null) => void;
   onChange: (elements: CanvasElement[]) => void;
-  onDropField?: (payload: { kind: string; value: string }, position: { x: number; y: number; page: number }) => void;
+  onDropField?: (
+    payload: { kind: string; value: string },
+    position: { x: number; y: number; page: number },
+  ) => void;
 }) {
   const [guides, setGuides] = useState<Guide[]>([]);
   const dragRef = useRef<{
@@ -73,9 +76,7 @@ export function EditorCanvas({
 
   const commit = useCallback(
     (id: string, patch: Partial<CanvasElement>) => {
-      onChange(
-        elements.map((element) => (element.id === id ? { ...element, ...patch } : element)),
-      );
+      onChange(elements.map((element) => (element.id === id ? { ...element, ...patch } : element)));
     },
     [elements, onChange],
   );
@@ -136,13 +137,15 @@ export function EditorCanvas({
       if (handle.includes("s")) h = origin.h + dy;
       if (handle.includes("w")) {
         const snapped = snapValue(origin.x + dx, xCandidates);
-        if (snapped.hit !== undefined) nextGuides.push({ axis: "x", at: snapped.value, page: origin.page });
+        if (snapped.hit !== undefined)
+          nextGuides.push({ axis: "x", at: snapped.value, page: origin.page });
         x = snapped.value;
         w = origin.w + (origin.x - x);
       }
       if (handle.includes("n")) {
         const snapped = snapValue(origin.y + dy, yCandidates);
-        if (snapped.hit !== undefined) nextGuides.push({ axis: "y", at: snapped.value, page: origin.page });
+        if (snapped.hit !== undefined)
+          nextGuides.push({ axis: "y", at: snapped.value, page: origin.page });
         y = snapped.value;
         h = origin.h + (origin.y - y);
       }

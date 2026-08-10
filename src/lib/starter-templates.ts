@@ -65,7 +65,13 @@ function documentShell(title: string, accent = "#0B0F14"): CanvasElement[] {
       "text",
       { x: 48, y: 44, w: 300, h: 34 },
       { text: title },
-      { fontSize: 26, fontWeight: 700, color: accent, fontFamily: "Space Grotesk", letterSpacing: -0.5 },
+      {
+        fontSize: 26,
+        fontWeight: 700,
+        color: accent,
+        fontFamily: "Space Grotesk",
+        letterSpacing: -0.5,
+      },
     ),
     makeElement(
       "field",
@@ -117,7 +123,12 @@ function partyBlock(y: number, label: string, prefix: string): CanvasElement[] {
   ];
 }
 
-function metaRow(y: number, label: string, binding: string, format?: CanvasElement["format"]): CanvasElement[] {
+function metaRow(
+  y: number,
+  label: string,
+  binding: string,
+  format?: CanvasElement["format"],
+): CanvasElement[] {
   return [
     makeElement(
       "text",
@@ -183,7 +194,13 @@ function itemsTable(y: number, accent: string, priceLabel = "Unit price"): Canva
       headerBackground: accent,
       headerColor: "#ffffff",
       columns: [
-        { id: newId("col"), header: "Description", binding: "description", width: 330, align: "left" },
+        {
+          id: newId("col"),
+          header: "Description",
+          binding: "description",
+          width: 330,
+          align: "left",
+        },
         {
           id: newId("col"),
           header: "Qty",
@@ -230,7 +247,12 @@ function invoiceDoc(): TemplateDoc {
       visibleIf: { path: "totals.discount", op: "truthy" },
     }),
     ...totalRow(514, "VAT 11%", "totals.tax"),
-    makeElement("shape", { x: 450, y: 540, w: 296, h: 1 }, { shape: "rect" }, { background: "#e5e7eb" }),
+    makeElement(
+      "shape",
+      { x: 450, y: 540, w: 296, h: 1 },
+      { shape: "rect" },
+      { background: "#e5e7eb" },
+    ),
     ...totalRow(550, "Amount due", "totals.grand_total", { bold: true }),
     makeElement(
       "text",
@@ -293,7 +315,12 @@ function quotationDoc(): TemplateDoc {
       { fontSize: 9.5, color: "#6b7280", lineHeight: 1.8 },
     ),
   ];
-  return { page: defaultPage("A4"), layout: { elements }, sampleData: data, schema: deriveSchema(data) };
+  return {
+    page: defaultPage("A4"),
+    layout: { elements },
+    sampleData: data,
+    schema: deriveSchema(data),
+  };
 }
 
 function purchaseOrderDoc(): TemplateDoc {
@@ -305,7 +332,12 @@ function purchaseOrderDoc(): TemplateDoc {
       address: "Jl. Raya Bekasi KM 22, Jakarta 13910",
       email: "sales@sinarlogistik.co.id",
     },
-    order: { number: "PO-2026-0451", date: "2026-08-10", delivery_date: "2026-08-24", terms: "Net 30" },
+    order: {
+      number: "PO-2026-0451",
+      date: "2026-08-10",
+      delivery_date: "2026-08-24",
+      terms: "Net 30",
+    },
   };
   const elements: CanvasElement[] = [
     ...documentShell("PURCHASE ORDER", accent),
@@ -325,7 +357,12 @@ function purchaseOrderDoc(): TemplateDoc {
       { fontSize: 9.5, color: "#6b7280" },
     ),
   ];
-  return { page: defaultPage("A4"), layout: { elements }, sampleData: data, schema: deriveSchema(data) };
+  return {
+    page: defaultPage("A4"),
+    layout: { elements },
+    sampleData: data,
+    schema: deriveSchema(data),
+  };
 }
 
 function receiptDoc(): TemplateDoc {
@@ -359,7 +396,12 @@ function receiptDoc(): TemplateDoc {
       { text: "For invoice {{invoice.number}} — thank you for your business." },
       { fontSize: 10, color: "#6b7280" },
     ),
-    makeElement("qrcode", { x: 656, y: 300, w: 90, h: 90 }, { codeValue: "{{receipt.number}}" }, {}),
+    makeElement(
+      "qrcode",
+      { x: 656, y: 300, w: 90, h: 90 },
+      { codeValue: "{{receipt.number}}" },
+      {},
+    ),
   ];
   return { page, layout: { elements }, sampleData: data, schema: deriveSchema(data) };
 }
@@ -418,9 +460,19 @@ function deliveryNoteDoc(): TemplateDoc {
       { text: "Delivered by\n\n\n________________________" },
       { fontSize: 9.5, color: "#6b7280", lineHeight: 1.8, align: "left" },
     ),
-    makeElement("barcode", { x: 48, y: 520, w: 240, h: 56 }, { codeValue: "{{delivery.number}}" }, {}),
+    makeElement(
+      "barcode",
+      { x: 48, y: 520, w: 240, h: 56 },
+      { codeValue: "{{delivery.number}}" },
+      {},
+    ),
   ];
-  return { page: defaultPage("A4"), layout: { elements }, sampleData: data, schema: deriveSchema(data) };
+  return {
+    page: defaultPage("A4"),
+    layout: { elements },
+    sampleData: data,
+    schema: deriveSchema(data),
+  };
 }
 
 function blankDoc(): TemplateDoc {
@@ -435,7 +487,12 @@ function blankDoc(): TemplateDoc {
           { text: "{{title}}" },
           { fontSize: 24, fontWeight: 700, fontFamily: "Space Grotesk", color: "#0B0F14" },
         ),
-        makeElement("text", { x: 48, y: 96, w: 400, h: 40 }, { text: "{{body}}" }, { fontSize: 11 }),
+        makeElement(
+          "text",
+          { x: 48, y: 96, w: 400, h: 40 },
+          { text: "{{body}}" },
+          { fontSize: 11 },
+        ),
       ],
     },
     sampleData: data,

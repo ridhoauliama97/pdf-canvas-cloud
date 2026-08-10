@@ -44,7 +44,8 @@ export function paginate(
   for (const element of tables) {
     const rowHeight = tableRowHeight(element);
     const headerHeight = element.showHeader === false ? 0 : rowHeight;
-    const rawRows = options.live && element.arrayBinding ? getPath(data, element.arrayBinding) : null;
+    const rawRows =
+      options.live && element.arrayBinding ? getPath(data, element.arrayBinding) : null;
     const rows = Array.isArray(rawRows) ? rawRows : null;
 
     if (!rows) {

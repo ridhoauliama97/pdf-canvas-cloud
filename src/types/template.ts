@@ -1,12 +1,5 @@
 export type ElementType =
-  | "text"
-  | "field"
-  | "table"
-  | "image"
-  | "shape"
-  | "qrcode"
-  | "barcode"
-  | "pagenumber";
+  "text" | "field" | "table" | "image" | "shape" | "qrcode" | "barcode" | "pagenumber";
 
 export type FormatType = "text" | "currency" | "number" | "date";
 
@@ -116,7 +109,10 @@ export interface TemplateDoc {
 }
 
 /** Page pixel sizes at 96dpi. */
-export const PAGE_SIZES: Record<Exclude<PageFormat, "Custom">, { width: number; height: number }> = {
+export const PAGE_SIZES: Record<
+  Exclude<PageFormat, "Custom">,
+  { width: number; height: number }
+> = {
   A4: { width: 794, height: 1123 },
   Letter: { width: 816, height: 1056 },
 };

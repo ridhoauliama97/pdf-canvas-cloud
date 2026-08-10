@@ -117,7 +117,9 @@ function Landing() {
               >
                 <feature.icon className="size-5 text-primary" />
                 <h2 className="mt-4 text-base font-semibold">{feature.title}</h2>
-                <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{feature.body}</p>
+                <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
+                  {feature.body}
+                </p>
               </div>
             ))}
           </div>

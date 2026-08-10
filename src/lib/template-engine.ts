@@ -80,13 +80,18 @@ export function formatValue(value: unknown, format?: ValueFormat): string {
  * Evaluate a tiny arithmetic expression over variable paths.
  * Supports + - * / ( ) numbers and dotted paths. No JS execution.
  */
-export function evaluateExpression(expression: string, scope: unknown, root?: unknown): number | undefined {
+export function evaluateExpression(
+  expression: string,
+  scope: unknown,
+  root?: unknown,
+): number | undefined {
   const tokens = expression.match(/([A-Za-z_][\w.[\]]*)|(\d+(?:\.\d+)?)|([+\-*/()])/g);
   if (!tokens) return undefined;
 
   const resolved = tokens.map((token) => {
     if (/^[A-Za-z_]/.test(token)) {
-      const value = getPath(scope, token) ?? (root !== undefined ? getPath(root, token) : undefined);
+      const value =
+        getPath(scope, token) ?? (root !== undefined ? getPath(root, token) : undefined);
       const numeric = Number(value);
       return Number.isFinite(numeric) ? String(numeric) : "0";
     }
@@ -134,7 +139,8 @@ export function evaluateExpression(expression: string, scope: unknown, root?: un
 /** Replace {{merge.tags}} inside a text string. */
 export function interpolate(text: string, data: unknown, scope?: unknown): string {
   return text.replace(/\{\{\s*([^}]+?)\s*\}\}/g, (_match, path: string) => {
-    const value = scope !== undefined ? (getPath(scope, path) ?? getPath(data, path)) : getPath(data, path);
+    const value =
+      scope !== undefined ? (getPath(scope, path) ?? getPath(data, path)) : getPath(data, path);
     return value === undefined || value === null ? "" : String(value);
   });
 }
@@ -202,7 +208,10 @@ export function resolveElementValue(
     return formatValue(value, options.format ?? { type: "number" });
   }
   if (options.binding) {
-    const value = scope !== undefined ? (getPath(scope, options.binding) ?? getPath(data, options.binding)) : getPath(data, options.binding);
+    const value =
+      scope !== undefined
+        ? (getPath(scope, options.binding) ?? getPath(data, options.binding))
+        : getPath(data, options.binding);
     return formatValue(value, options.format);
   }
   if (options.text) return interpolate(options.text, data, scope);

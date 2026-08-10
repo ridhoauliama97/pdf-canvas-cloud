@@ -12,7 +12,8 @@ export const Route = createFileRoute("/_authenticated/settings")({
       { title: "Workspace settings — Report Flow" },
       {
         name: "description",
-        content: "Review your Report Flow workspace details and the members who can edit templates.",
+        content:
+          "Review your Report Flow workspace details and the members who can edit templates.",
       },
       { property: "og:title", content: "Workspace settings — Report Flow" },
       { property: "og:description", content: "Workspace details and member roles." },

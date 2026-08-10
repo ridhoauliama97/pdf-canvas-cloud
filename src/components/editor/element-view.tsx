@@ -230,7 +230,9 @@ export function ElementView({
                 height: rowHeight,
                 color: element.style.color,
                 background:
-                  element.striped && index % 2 === 1 ? (element.style.background || "#f8fafc") : undefined,
+                  element.striped && index % 2 === 1
+                    ? element.style.background || "#f8fafc"
+                    : undefined,
                 borderBottom: `${element.style.borderWidth ?? 1}px solid ${element.style.borderColor ?? "#e5e7eb"}`,
               }}
             >
