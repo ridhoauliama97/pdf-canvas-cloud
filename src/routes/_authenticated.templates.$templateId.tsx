@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   ArrowLeft,
   Copy,
+  Download,
   Eye,
   Loader2,
   Pencil,
@@ -14,6 +15,7 @@ import {
   ZoomOut,
 } from "lucide-react";
 import { toast } from "sonner";
+import { generateDocument } from "@/server/generate.server";
 import { supabase } from "@/integrations/supabase/client";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { jsonValue } from "@/lib/json";
@@ -26,7 +28,13 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import type { CanvasElement, ElementType, PageSetup, TemplateLayout } from "@/types/template";
 import { cn } from "@/lib/utils";
 
@@ -62,7 +70,11 @@ function newElement(type: ElementType, at: { x: number; y: number; page: number 
   const page = { page: at.page };
   switch (type) {
     case "field":
-      return makeElement("field", { ...box, w: 180, h: 20 }, { ...page, binding: "invoice.number" });
+      return makeElement(
+        "field",
+        { ...box, w: 180, h: 20 },
+        { ...page, binding: "invoice.number" },
+      );
     case "table":
       return makeElement(
         "table",
@@ -74,7 +86,13 @@ function newElement(type: ElementType, at: { x: number; y: number; page: number 
           showHeader: true,
           striped: true,
           columns: [
-            { id: newId("col"), header: "Description", binding: "description", width: 3, align: "left" },
+            {
+              id: newId("col"),
+              header: "Description",
+              binding: "description",
+              width: 3,
+              align: "left",
+            },
             { id: newId("col"), header: "Qty", binding: "qty", width: 1, align: "right" },
             {
               id: newId("col"),
@@ -92,11 +110,23 @@ function newElement(type: ElementType, at: { x: number; y: number; page: number 
     case "shape":
       return makeElement("shape", { ...box, w: 400, h: 2 }, { ...page, shape: "line" });
     case "qrcode":
-      return makeElement("qrcode", { ...box, w: 80, h: 80 }, { ...page, codeValue: "{{invoice.number}}" });
+      return makeElement(
+        "qrcode",
+        { ...box, w: 80, h: 80 },
+        { ...page, codeValue: "{{invoice.number}}" },
+      );
     case "barcode":
-      return makeElement("barcode", { ...box, w: 160, h: 48 }, { ...page, codeValue: "{{invoice.number}}" });
+      return makeElement(
+        "barcode",
+        { ...box, w: 160, h: 48 },
+        { ...page, codeValue: "{{invoice.number}}" },
+      );
     case "pagenumber":
-      return makeElement("pagenumber", { ...box, w: 160, h: 16 }, { ...page, text: "Page {{page}} of {{pages}}" });
+      return makeElement(
+        "pagenumber",
+        { ...box, w: 160, h: 16 },
+        { ...page, text: "Page {{page}} of {{pages}}" },
+      );
     default:
       return makeElement("text", box, { ...page, text: "New text" });
   }
@@ -210,6 +240,29 @@ function EditorPage() {
     onError: (error: Error) => toast.error(error.message),
   });
 
+  const generatePdf = useMutation({
+    mutationFn: async () => {
+      const result = await generateDocument({ data: { templateId, data: sampleData } });
+      return result;
+    },
+    onSuccess: (result) => {
+      toast.success(
+        <span>
+          PDF generated!{" "}
+          <a
+            href={result.signedUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline underline-offset-2"
+          >
+            Download PDF
+          </a>
+        </span>,
+      );
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
   if (template.isLoading || !page) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -236,11 +289,23 @@ function EditorPage() {
 
         <div className="ml-auto flex items-center gap-2">
           <div className="flex items-center gap-1 rounded-md border border-border p-0.5">
-            <Button variant="ghost" size="icon" className="size-7" onClick={() => setZoom((z) => Math.max(0.4, +(z - 0.1).toFixed(2)))}>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-7"
+              onClick={() => setZoom((z) => Math.max(0.4, +(z - 0.1).toFixed(2)))}
+            >
               <ZoomOut className="size-3.5" />
             </Button>
-            <span className="text-mono w-10 text-center text-[11px]">{Math.round(zoom * 100)}%</span>
-            <Button variant="ghost" size="icon" className="size-7" onClick={() => setZoom((z) => Math.min(1.5, +(z + 0.1).toFixed(2)))}>
+            <span className="text-mono w-10 text-center text-[11px]">
+              {Math.round(zoom * 100)}%
+            </span>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-7"
+              onClick={() => setZoom((z) => Math.min(1.5, +(z + 0.1).toFixed(2)))}
+            >
               <ZoomIn className="size-3.5" />
             </Button>
           </div>
@@ -254,13 +319,41 @@ function EditorPage() {
           </Button>
           {canEdit && (
             <>
-              <Button variant="outline" size="sm" onClick={() => save.mutate({ publish: false })} disabled={save.isPending}>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => save.mutate({ publish: false })}
+                disabled={save.isPending}
+              >
                 <Save className="size-4" /> Save draft
               </Button>
-              <Button size="sm" onClick={() => save.mutate({ publish: true })} disabled={save.isPending}>
-                {save.isPending ? <Loader2 className="size-4 animate-spin" /> : <Upload className="size-4" />}
+              <Button
+                size="sm"
+                onClick={() => save.mutate({ publish: true })}
+                disabled={save.isPending}
+              >
+                {save.isPending ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <Upload className="size-4" />
+                )}
                 Publish
               </Button>
+              {template.data?.row.status === "published" && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => generatePdf.mutate()}
+                  disabled={generatePdf.isPending}
+                >
+                  {generatePdf.isPending ? (
+                    <Loader2 className="size-4 animate-spin" />
+                  ) : (
+                    <Download className="size-4" />
+                  )}
+                  Generate PDF
+                </Button>
+              )}
             </>
           )}
         </div>
@@ -277,7 +370,11 @@ function EditorPage() {
                 key={item.type}
                 type="button"
                 onClick={() => {
-                  const element = newElement(item.type, { x: page.margin.left, y: page.margin.top + 40, page: 1 });
+                  const element = newElement(item.type, {
+                    x: page.margin.left,
+                    y: page.margin.top + 40,
+                    page: 1,
+                  });
                   setElements((current) => [...current, element]);
                   setSelectedId(element.id);
                   setMode("design");
@@ -512,7 +609,9 @@ function EditorPage() {
                         type="number"
                         value={selected.style.fontSize}
                         onChange={(event) =>
-                          update({ style: { ...selected.style, fontSize: Number(event.target.value) } })
+                          update({
+                            style: { ...selected.style, fontSize: Number(event.target.value) },
+                          })
                         }
                       />
                     </div>
@@ -542,7 +641,10 @@ function EditorPage() {
                         value={selected.style.align}
                         onValueChange={(value) =>
                           update({
-                            style: { ...selected.style, align: value as "left" | "center" | "right" },
+                            style: {
+                              ...selected.style,
+                              align: value as "left" | "center" | "right",
+                            },
                           })
                         }
                       >
@@ -637,7 +739,9 @@ function EditorPage() {
                     value={page.format}
                     onValueChange={(value) => {
                       const size =
-                        value === "Letter" ? { width: 816, height: 1056 } : { width: 794, height: 1123 };
+                        value === "Letter"
+                          ? { width: 816, height: 1056 }
+                          : { width: 794, height: 1123 };
                       setPage({ ...page, format: value as PageSetup["format"], ...size });
                       setDirty(true);
                     }}

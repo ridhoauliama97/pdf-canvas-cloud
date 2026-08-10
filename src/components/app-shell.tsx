@@ -20,7 +20,7 @@ const NAV = [
   { to: "/settings", label: "Workspace", icon: Building2, ready: true },
   { to: "/templates", label: "Document history", icon: History, ready: false },
   { to: "/templates", label: "Batches", icon: Layers, ready: false },
-  { to: "/templates", label: "Developers", icon: Terminal, ready: false },
+  { to: "/developers", label: "Developers", icon: Terminal, ready: true },
   { to: "/templates", label: "Usage & billing", icon: Wallet, ready: false },
 ] as const;
 

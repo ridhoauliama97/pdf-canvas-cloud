@@ -12,9 +12,13 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AuthenticatedDevelopersRouteImport } from './routes/_authenticated.developers'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated.settings'
 import { Route as AuthenticatedTemplatesIndexRouteImport } from './routes/_authenticated.templates.index'
 import { Route as AuthenticatedTemplatesTemplateIdRouteImport } from './routes/_authenticated.templates.$templateId'
+import { Route as ApiV1TemplatesRouteImport } from './routes/api.v1.templates'
+import { Route as ApiV1DocumentsDocumentIdRouteImport } from './routes/api.v1.documents.$documentId'
+import { Route as ApiV1DocumentsGenerateRouteImport } from './routes/api.v1.documents.generate'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -29,6 +33,11 @@ const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedDevelopersRoute = AuthenticatedDevelopersRouteImport.update({
+  id: '/developers',
+  path: '/developers',
+  getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
   id: '/settings',
@@ -47,50 +56,102 @@ const AuthenticatedTemplatesTemplateIdRoute =
     path: '/templates/$templateId',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const ApiV1TemplatesRoute = ApiV1TemplatesRouteImport.update({
+  id: '/api/v1/templates',
+  path: '/api/v1/templates',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiV1DocumentsDocumentIdRoute =
+  ApiV1DocumentsDocumentIdRouteImport.update({
+    id: '/api/v1/documents/$documentId',
+    path: '/api/v1/documents/$documentId',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiV1DocumentsGenerateRoute = ApiV1DocumentsGenerateRouteImport.update({
+  id: '/api/v1/documents/generate',
+  path: '/api/v1/documents/generate',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/developers': typeof AuthenticatedDevelopersRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/templates/$templateId': typeof AuthenticatedTemplatesTemplateIdRoute
+  '/api/v1/templates': typeof ApiV1TemplatesRoute
   '/templates/': typeof AuthenticatedTemplatesIndexRoute
+  '/api/v1/documents/$documentId': typeof ApiV1DocumentsDocumentIdRoute
+  '/api/v1/documents/generate': typeof ApiV1DocumentsGenerateRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/developers': typeof AuthenticatedDevelopersRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/templates/$templateId': typeof AuthenticatedTemplatesTemplateIdRoute
+  '/api/v1/templates': typeof ApiV1TemplatesRoute
   '/templates': typeof AuthenticatedTemplatesIndexRoute
+  '/api/v1/documents/$documentId': typeof ApiV1DocumentsDocumentIdRoute
+  '/api/v1/documents/generate': typeof ApiV1DocumentsGenerateRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/auth': typeof AuthRoute
+  '/_authenticated/developers': typeof AuthenticatedDevelopersRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/templates/$templateId': typeof AuthenticatedTemplatesTemplateIdRoute
+  '/api/v1/templates': typeof ApiV1TemplatesRoute
   '/_authenticated/templates/': typeof AuthenticatedTemplatesIndexRoute
+  '/api/v1/documents/$documentId': typeof ApiV1DocumentsDocumentIdRoute
+  '/api/v1/documents/generate': typeof ApiV1DocumentsGenerateRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/auth' | '/settings' | '/templates/$templateId' | '/templates/'
+    | '/'
+    | '/auth'
+    | '/developers'
+    | '/settings'
+    | '/templates/$templateId'
+    | '/api/v1/templates'
+    | '/templates/'
+    | '/api/v1/documents/$documentId'
+    | '/api/v1/documents/generate'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/settings' | '/templates/$templateId' | '/templates'
+  to:
+    | '/'
+    | '/auth'
+    | '/developers'
+    | '/settings'
+    | '/templates/$templateId'
+    | '/api/v1/templates'
+    | '/templates'
+    | '/api/v1/documents/$documentId'
+    | '/api/v1/documents/generate'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/_authenticated/developers'
     | '/_authenticated/settings'
     | '/_authenticated/templates/$templateId'
+    | '/api/v1/templates'
     | '/_authenticated/templates/'
+    | '/api/v1/documents/$documentId'
+    | '/api/v1/documents/generate'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   AuthRoute: typeof AuthRoute
+  ApiV1TemplatesRoute: typeof ApiV1TemplatesRoute
+  ApiV1DocumentsDocumentIdRoute: typeof ApiV1DocumentsDocumentIdRoute
+  ApiV1DocumentsGenerateRoute: typeof ApiV1DocumentsGenerateRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -116,6 +177,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/developers': {
+      id: '/_authenticated/developers'
+      path: '/developers'
+      fullPath: '/developers'
+      preLoaderRoute: typeof AuthenticatedDevelopersRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/settings': {
       id: '/_authenticated/settings'
       path: '/settings'
@@ -137,16 +205,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTemplatesTemplateIdRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/api/v1/templates': {
+      id: '/api/v1/templates'
+      path: '/api/v1/templates'
+      fullPath: '/api/v1/templates'
+      preLoaderRoute: typeof ApiV1TemplatesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/v1/documents/$documentId': {
+      id: '/api/v1/documents/$documentId'
+      path: '/api/v1/documents/$documentId'
+      fullPath: '/api/v1/documents/$documentId'
+      preLoaderRoute: typeof ApiV1DocumentsDocumentIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/v1/documents/generate': {
+      id: '/api/v1/documents/generate'
+      path: '/api/v1/documents/generate'
+      fullPath: '/api/v1/documents/generate'
+      preLoaderRoute: typeof ApiV1DocumentsGenerateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 interface AuthenticatedRouteChildren {
+  AuthenticatedDevelopersRoute: typeof AuthenticatedDevelopersRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedTemplatesTemplateIdRoute: typeof AuthenticatedTemplatesTemplateIdRoute
   AuthenticatedTemplatesIndexRoute: typeof AuthenticatedTemplatesIndexRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedDevelopersRoute: AuthenticatedDevelopersRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedTemplatesTemplateIdRoute: AuthenticatedTemplatesTemplateIdRoute,
   AuthenticatedTemplatesIndexRoute: AuthenticatedTemplatesIndexRoute,
@@ -160,7 +251,20 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   AuthRoute: AuthRoute,
+  ApiV1TemplatesRoute: ApiV1TemplatesRoute,
+  ApiV1DocumentsDocumentIdRoute: ApiV1DocumentsDocumentIdRoute,
+  ApiV1DocumentsGenerateRoute: ApiV1DocumentsGenerateRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
