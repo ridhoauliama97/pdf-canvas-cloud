@@ -15,7 +15,7 @@ import {
   ZoomOut,
 } from "lucide-react";
 import { toast } from "sonner";
-import { generateDocument } from "@/server/generate.server";
+import { generateDocument } from "@/server/generate";
 import { supabase } from "@/integrations/supabase/client";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { jsonValue } from "@/lib/json";

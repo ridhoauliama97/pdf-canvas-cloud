@@ -26,7 +26,7 @@ import type {
 function stripUndefined<T extends Record<string, unknown>>(
   obj: T,
 ): { [K in keyof T]: NonNullable<T[K]> } {
-  const result = {} as Record<string, unknown>;
+  const result = {} as any;
   for (const [key, value] of Object.entries(obj)) {
     if (value !== undefined) {
       result[key] = value;
@@ -91,11 +91,7 @@ function renderText(el: CanvasElement, data: unknown, scope?: unknown): React.Re
 
   if (!content) return null;
 
-  return React.createElement(
-    Text,
-    { style: toPdfStyle(el.style) as Record<string, unknown>, key: el.id },
-    content,
-  );
+  return React.createElement(Text, { style: toPdfStyle(el.style) as any, key: el.id }, content);
 }
 
 /** Render a field element (single variable binding). */
@@ -113,11 +109,7 @@ function renderField(el: CanvasElement, data: unknown, scope?: unknown): React.R
 
   if (!content) return null;
 
-  return React.createElement(
-    Text,
-    { style: toPdfStyle(el.style) as Record<string, unknown>, key: el.id },
-    content,
-  );
+  return React.createElement(Text, { style: toPdfStyle(el.style) as any, key: el.id }, content);
 }
 
 /** Render a table element (may be paginated into multiple fragments). */
@@ -191,9 +183,7 @@ function renderTableFragment(
         value = formatValue(exprVal, col.format ?? { type: "number" });
       } else {
         const cellValue =
-          typeof row === "object" && row !== null
-            ? (row as Record<string, unknown>)[col.binding]
-            : undefined;
+          typeof row === "object" && row !== null ? (row as any)[col.binding] : undefined;
         value = formatValue(cellValue, col.format);
       }
 
@@ -210,7 +200,7 @@ function renderTableFragment(
               col.align === "right" ? "flex-end" : col.align === "center" ? "center" : "flex-start",
             padding: "0 4pt",
             ...(isStriped ? { backgroundColor: "#f9fafb" } : {}),
-          } as Record<string, unknown>,
+          } as any,
         },
         React.createElement(
           Text,
@@ -258,9 +248,8 @@ function renderImage(el: CanvasElement, data: unknown, scope?: unknown): React.R
     el.binding && !el.src
       ? String(
           scope !== undefined
-            ? ((scope as Record<string, unknown>)[el.binding] ??
-                (data as Record<string, unknown>)[el.binding])
-            : ((data as Record<string, unknown>)[el.binding] ?? ""),
+            ? ((scope as any)[el.binding] ?? (data as any)[el.binding])
+            : ((data as any)[el.binding] ?? ""),
         )
       : el.src || "";
 
@@ -295,7 +284,7 @@ function renderShape(el: CanvasElement): React.ReactNode {
         key: el.id,
         width: el.w,
         height: el.h,
-        style: absolutePos(el, {} as PageSetup) as Record<string, unknown>,
+        style: absolutePos(el, {} as PageSetup) as any,
       },
       React.createElement(Line, {
         x1: 0,
@@ -315,7 +304,7 @@ function renderShape(el: CanvasElement): React.ReactNode {
         key: el.id,
         width: el.w,
         height: el.h,
-        style: absolutePos(el, {} as PageSetup) as Record<string, unknown>,
+        style: absolutePos(el, {} as PageSetup) as any,
       },
       React.createElement(Rect, {
         x: 0,
@@ -347,9 +336,7 @@ function renderShape(el: CanvasElement): React.ReactNode {
 
 /** Render a QR code element (placeholder — actual QR generation needs a library). */
 function renderQRCode(el: CanvasElement, data: unknown): React.ReactNode {
-  const value = el.binding
-    ? String((data as Record<string, unknown>)[el.binding] ?? "")
-    : el.text || "";
+  const value = el.binding ? String((data as any)[el.binding] ?? "") : el.text || "";
 
   return React.createElement(
     View,
@@ -375,9 +362,7 @@ function renderQRCode(el: CanvasElement, data: unknown): React.ReactNode {
 
 /** Render a barcode element (placeholder — actual barcode generation needs a library). */
 function renderBarcode(el: CanvasElement, data: unknown): React.ReactNode {
-  const value = el.binding
-    ? String((data as Record<string, unknown>)[el.binding] ?? "")
-    : el.text || "";
+  const value = el.binding ? String((data as any)[el.binding] ?? "") : el.text || "";
 
   return React.createElement(
     View,
@@ -407,7 +392,7 @@ function renderPageNumber(el: CanvasElement): React.ReactNode {
     Text,
     {
       key: el.id,
-      style: toPdfStyle(el.style) as Record<string, unknown>,
+      style: toPdfStyle(el.style) as any,
       render: ({ pageNumber, totalPages }: { pageNumber: number; totalPages: number }) => {
         const text = el.text || "{{pageNumber}} / {{totalPages}}";
         return text
