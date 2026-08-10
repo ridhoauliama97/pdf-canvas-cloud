@@ -57,7 +57,7 @@ function OnboardingCard() {
     mutationFn: async () => {
       const { error } = await supabase.rpc("create_workspace", {
         _name: name,
-        _industry: industry || undefined,
+        ...(industry.trim() ? { _industry: industry.trim() } : {}),
       });
       if (error) throw error;
     },

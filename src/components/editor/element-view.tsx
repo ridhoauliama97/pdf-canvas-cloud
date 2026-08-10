@@ -26,7 +26,11 @@ function styleToCss(element: CanvasElement): React.CSSProperties {
 
 function cellValue(column: TableColumn, row: unknown, data: unknown): string {
   return resolveElementValue(
-    { binding: column.binding, expression: column.expression, format: column.format },
+    {
+      binding: column.binding,
+      ...(column.expression ? { expression: column.expression } : {}),
+      ...(column.format ? { format: column.format } : {}),
+    },
     data,
     row,
   );
