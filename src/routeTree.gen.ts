@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated.settings'
 import { Route as AuthenticatedTemplatesIndexRouteImport } from './routes/_authenticated.templates.index'
 import { Route as AuthenticatedTemplatesTemplateIdRouteImport } from './routes/_authenticated.templates.$templateId'
 
@@ -29,6 +30,11 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedTemplatesIndexRoute =
   AuthenticatedTemplatesIndexRouteImport.update({
     id: '/templates/',
@@ -45,12 +51,14 @@ const AuthenticatedTemplatesTemplateIdRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/settings': typeof AuthenticatedSettingsRoute
   '/templates/$templateId': typeof AuthenticatedTemplatesTemplateIdRoute
   '/templates/': typeof AuthenticatedTemplatesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/settings': typeof AuthenticatedSettingsRoute
   '/templates/$templateId': typeof AuthenticatedTemplatesTemplateIdRoute
   '/templates': typeof AuthenticatedTemplatesIndexRoute
 }
@@ -59,19 +67,22 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/auth': typeof AuthRoute
+  '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/templates/$templateId': typeof AuthenticatedTemplatesTemplateIdRoute
   '/_authenticated/templates/': typeof AuthenticatedTemplatesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/templates/$templateId' | '/templates/'
+  fullPaths:
+    '/' | '/auth' | '/settings' | '/templates/$templateId' | '/templates/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/templates/$templateId' | '/templates'
+  to: '/' | '/auth' | '/settings' | '/templates/$templateId' | '/templates'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/_authenticated/settings'
     | '/_authenticated/templates/$templateId'
     | '/_authenticated/templates/'
   fileRoutesById: FileRoutesById
@@ -105,6 +116,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/settings': {
+      id: '/_authenticated/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AuthenticatedSettingsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/templates/': {
       id: '/_authenticated/templates/'
       path: '/templates'
@@ -123,11 +141,13 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteChildren {
+  AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedTemplatesTemplateIdRoute: typeof AuthenticatedTemplatesTemplateIdRoute
   AuthenticatedTemplatesIndexRoute: typeof AuthenticatedTemplatesIndexRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedTemplatesTemplateIdRoute: AuthenticatedTemplatesTemplateIdRoute,
   AuthenticatedTemplatesIndexRoute: AuthenticatedTemplatesIndexRoute,
 }
