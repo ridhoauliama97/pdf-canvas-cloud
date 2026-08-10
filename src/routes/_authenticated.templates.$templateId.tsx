@@ -58,44 +58,47 @@ const PALETTE: { type: ElementType; label: string }[] = [
 ];
 
 function newElement(type: ElementType, at: { x: number; y: number; page: number }): CanvasElement {
-  const base = { x: at.x, y: at.y, page: at.page };
+  const box = { x: at.x, y: at.y, w: 220, h: 22 };
+  const page = { page: at.page };
   switch (type) {
     case "field":
-      return makeElement("field", { ...base, w: 180, h: 20, binding: "invoice.number" });
+      return makeElement("field", { ...box, w: 180, h: 20 }, { ...page, binding: "invoice.number" });
     case "table":
-      return makeElement("table", {
-        ...base,
-        w: 500,
-        h: 120,
-        arrayBinding: "items",
-        rowHeight: 28,
-        showHeader: true,
-        striped: true,
-        columns: [
-          { id: newId("col"), header: "Description", binding: "description", width: 3, align: "left" },
-          { id: newId("col"), header: "Qty", binding: "qty", width: 1, align: "right" },
-          {
-            id: newId("col"),
-            header: "Amount",
-            binding: "amount",
-            width: 1.4,
-            align: "right",
-            format: { type: "currency", currency: "IDR" },
-          },
-        ],
-      });
+      return makeElement(
+        "table",
+        { ...box, w: 500, h: 120 },
+        {
+          ...page,
+          arrayBinding: "items",
+          rowHeight: 28,
+          showHeader: true,
+          striped: true,
+          columns: [
+            { id: newId("col"), header: "Description", binding: "description", width: 3, align: "left" },
+            { id: newId("col"), header: "Qty", binding: "qty", width: 1, align: "right" },
+            {
+              id: newId("col"),
+              header: "Amount",
+              binding: "amount",
+              width: 1.4,
+              align: "right",
+              format: { type: "currency", currency: "IDR" },
+            },
+          ],
+        },
+      );
     case "image":
-      return makeElement("image", { ...base, w: 120, h: 60, fit: "contain" });
+      return makeElement("image", { ...box, w: 120, h: 60 }, { ...page, fit: "contain" });
     case "shape":
-      return makeElement("shape", { ...base, w: 400, h: 2, shape: "line" });
+      return makeElement("shape", { ...box, w: 400, h: 2 }, { ...page, shape: "line" });
     case "qrcode":
-      return makeElement("qrcode", { ...base, w: 80, h: 80, codeValue: "{{invoice.number}}" });
+      return makeElement("qrcode", { ...box, w: 80, h: 80 }, { ...page, codeValue: "{{invoice.number}}" });
     case "barcode":
-      return makeElement("barcode", { ...base, w: 160, h: 48, codeValue: "{{invoice.number}}" });
+      return makeElement("barcode", { ...box, w: 160, h: 48 }, { ...page, codeValue: "{{invoice.number}}" });
     case "pagenumber":
-      return makeElement("pagenumber", { ...base, w: 160, h: 16, text: "Page {{page}} of {{pages}}" });
+      return makeElement("pagenumber", { ...box, w: 160, h: 16 }, { ...page, text: "Page {{page}} of {{pages}}" });
     default:
-      return makeElement("text", { ...base, w: 220, h: 22, text: "New text" });
+      return makeElement("text", box, { ...page, text: "New text" });
   }
 }
 
@@ -324,14 +327,11 @@ function EditorPage() {
               setDirty(true);
             }}
             onDropField={(payload, position) => {
-              const element = makeElement("field", {
-                x: position.x,
-                y: position.y,
-                page: position.page,
-                w: 180,
-                h: 20,
-                binding: payload.value,
-              });
+              const element = makeElement(
+                "field",
+                { x: position.x, y: position.y, w: 180, h: 20 },
+                { page: position.page, binding: payload.value },
+              );
               setElements((current) => [...current, element]);
               setSelectedId(element.id);
               setDirty(true);
