@@ -21,6 +21,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
+import { jsonValue } from "@/lib/json";
 
 export const Route = createFileRoute("/_authenticated/templates/")({
   head: () => ({
@@ -56,7 +57,7 @@ function OnboardingCard() {
     mutationFn: async () => {
       const { error } = await supabase.rpc("create_workspace", {
         _name: name,
-        _industry: industry || null,
+        _industry: industry || undefined,
       });
       if (error) throw error;
     },
@@ -136,10 +137,10 @@ function NewTemplateDialog({ companyId }: { companyId: string }) {
         template_id: template.id,
         company_id: companyId,
         version: 1,
-        data_schema: doc.schema,
-        layout: doc.layout,
-        page: doc.page,
-        sample_data: doc.sampleData,
+        data_schema: jsonValue(doc.schema),
+        layout: jsonValue(doc.layout),
+        page: jsonValue(doc.page),
+        sample_data: jsonValue(doc.sampleData),
         note: `Created from ${starter.name} starter`,
       });
       if (versionError) throw versionError;
