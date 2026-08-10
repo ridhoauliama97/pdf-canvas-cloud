@@ -38,7 +38,7 @@ import {
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { listApiKeys, createApiKey, revokeApiKey } from "@/server/api-keys.server";
+import { listApiKeys, createApiKey, revokeApiKey } from "@/functions/api-keys";
 
 export const Route = createFileRoute("/_authenticated/developers")({
   head: () => ({

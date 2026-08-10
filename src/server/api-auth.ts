@@ -1,6 +1,6 @@
 import { createMiddleware } from "@tanstack/react-start";
 import { getRequest } from "@tanstack/react-start/server";
-import { validateApiKey } from "./api-keys.server";
+import { validateApiKey } from "@/functions/api-keys";
 
 // ---------------------------------------------------------------------------
 // Types
