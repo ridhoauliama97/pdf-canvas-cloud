@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import { renderPdf } from "./pdf-render";
+import { renderPdf } from "@/server/pdf-render";
 import type { TemplateLayout, PageSetup } from "@/types/template";
 import type { Json } from "@/integrations/supabase/types";
 
