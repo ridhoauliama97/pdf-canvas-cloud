@@ -81,6 +81,7 @@ function OnboardingCard() {
   const [name, setName] = useState("");
   const [industry, setIndustry] = useState("");
   const queryClient = useQueryClient();
+  const { refetch } = useWorkspace();
 
   const create = useMutation({
     mutationFn: async () => {
@@ -92,6 +93,7 @@ function OnboardingCard() {
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["workspaces"] });
+      await refetch();
       toast.success("Workspace created");
     },
     onError: (error: Error) => toast.error(error.message),
