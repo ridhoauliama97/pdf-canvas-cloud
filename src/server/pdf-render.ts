@@ -3,7 +3,7 @@
  * Converts a template layout + data JSON into a PDF buffer.
  */
 
-import { renderToBuffer } from "@react-pdf/renderer";
+import { renderToBuffer, Font } from "@react-pdf/renderer";
 import { Document, Page, View, Text, Image, Svg, Line, Rect } from "@react-pdf/renderer";
 import React from "react";
 import { paginate } from "@/lib/layout-paginate";
@@ -21,6 +21,66 @@ import type {
   TableColumn,
   TemplateLayout,
 } from "@/types/template";
+
+// ── Font Registration ────────────────────────────────────────────────────────
+
+Font.register({
+  family: "Inter",
+  fonts: [
+    {
+      src: "https://fonts.gstatic.com/s/inter/v18/UcCO3FwrK3iLTeHuS_nVMrMxCp50SjIw2boKoduKmMEVuLyfAZ9hjQ.woff2",
+      fontWeight: 400,
+    },
+    {
+      src: "https://fonts.gstatic.com/s/inter/v18/UcCO3FwrK3iLTeHuS_nVMrMxCp50SjIw2boKoduKmMEVuGKYAZ9hjQ.woff2",
+      fontWeight: 500,
+    },
+    {
+      src: "https://fonts.gstatic.com/s/inter/v18/UcCO3FwrK3iLTeHuS_nVMrMxCp50SjIw2boKoduKmMEVuFuYAZ9hjQ.woff2",
+      fontWeight: 600,
+    },
+    {
+      src: "https://fonts.gstatic.com/s/inter/v18/UcCO3FwrK3iLTeHuS_nVMrMxCp50SjIw2boKoduKmMEVuBWYAZ9hjQ.woff2",
+      fontWeight: 700,
+    },
+  ],
+});
+
+Font.register({
+  family: "Space Grotesk",
+  fonts: [
+    {
+      src: "https://fonts.gstatic.com/s/spacegrotesk/v16/V8mDoQDjQSkFtoMM3T6r8E7mPb54C_k3HqUtEw.woff2",
+      fontWeight: 400,
+    },
+    {
+      src: "https://fonts.gstatic.com/s/spacegrotesk/v16/V8mDoQDjQSkFtoMM3T6r8E7mPb94C_k3HqUtEw.woff2",
+      fontWeight: 500,
+    },
+    {
+      src: "https://fonts.gstatic.com/s/spacegrotesk/v16/V8mDoQDjQSkFtoMM3T6r8E7mPbN4C_k3HqUtEw.woff2",
+      fontWeight: 600,
+    },
+    {
+      src: "https://fonts.gstatic.com/s/spacegrotesk/v16/V8mDoQDjQSkFtoMM3T6r8E7mPbJ4C_k3HqUtEw.woff2",
+      fontWeight: 700,
+    },
+  ],
+});
+
+Font.register({
+  family: "JetBrains Mono",
+  fonts: [
+    {
+      src: "https://fonts.gstatic.com/s/jetbrainsmono/v21/tDbY2o-flEEny0FPP0-ypOSb3lHrzA.woff2",
+      fontWeight: 400,
+    },
+    {
+      src: "https://fonts.gstatic.com/s/jetbrainsmono/v21/tDbY2o-flEEny0FPP0-ypOSb3lHrzA.woff2",
+      fontWeight: 500,
+    },
+  ],
+});
 
 /** Strip undefined values from an object to satisfy exactOptionalPropertyTypes. */
 function stripUndefined<T extends Record<string, unknown>>(
