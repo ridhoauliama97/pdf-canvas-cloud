@@ -401,6 +401,47 @@ export type Database = {
           },
         ];
       };
+      webhooks: {
+        Row: {
+          active: boolean;
+          company_id: string;
+          created_at: string;
+          events: string[];
+          id: string;
+          secret: string;
+          updated_at: string;
+          url: string;
+        };
+        Insert: {
+          active?: boolean;
+          company_id: string;
+          created_at?: string;
+          events?: string[];
+          id?: string;
+          secret: string;
+          updated_at?: string;
+          url: string;
+        };
+        Update: {
+          active?: boolean;
+          company_id?: string;
+          created_at?: string;
+          events?: string[];
+          id?: string;
+          secret?: string;
+          updated_at?: string;
+          url?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "webhooks_company_id_fkey";
+            columns: ["company_id"];
+            isOneToOne: false;
+            referencedRelation: "companies";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       templates: {
         Row: {
           company_id: string;

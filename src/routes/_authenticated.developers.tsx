@@ -1,7 +1,20 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Copy, KeyRound, Shield, Terminal, Trash2, Check, Clock, Eye, EyeOff } from "lucide-react";
+import {
+  Copy,
+  KeyRound,
+  Shield,
+  Terminal,
+  Trash2,
+  Check,
+  Clock,
+  Eye,
+  EyeOff,
+  Webhook,
+  Send,
+  AlertTriangle,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import { AppShell } from "@/components/app-shell";
@@ -39,6 +52,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { listApiKeys, createApiKey, revokeApiKey } from "@/functions/api-keys";
+import { listWebhooks, createWebhook, deleteWebhook, testWebhook } from "@/functions/webhooks";
 
 export const Route = createFileRoute("/_authenticated/developers")({
   head: () => ({
@@ -75,6 +89,23 @@ interface CreateApiKeyResult {
   scopes: string[];
   created_at: string;
   key: string;
+}
+
+interface WebhookRow {
+  id: string;
+  url: string;
+  events: string[];
+  active: boolean;
+  created_at: string;
+}
+
+interface CreateWebhookResult {
+  id: string;
+  url: string;
+  events: string[];
+  active: boolean;
+  created_at: string;
+  secret: string;
 }
 
 const API_BASE_URL = "https://gisxutozbghkzdlnktls.supabase.co/functions/v1";
@@ -377,6 +408,276 @@ function RevokeDialog({
 }
 
 // ---------------------------------------------------------------------------
+// Create Webhook Dialog
+// ---------------------------------------------------------------------------
+
+function CreateWebhookDialog({
+  open,
+  onOpenChange,
+  onCreated,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onCreated: (result: CreateWebhookResult) => void;
+}) {
+  const queryClient = useQueryClient();
+  const [url, setUrl] = useState("");
+  const [events, setEvents] = useState<Record<string, boolean>>({
+    "batch.completed": true,
+  });
+
+  const createMutation = useMutation({
+    mutationFn: async (input: { url: string; events: string[] }) => {
+      return createWebhook({ data: input });
+    },
+    onSuccess: (result) => {
+      queryClient.invalidateQueries({ queryKey: ["webhooks"] });
+      setUrl("");
+      setEvents({ "batch.completed": true });
+      onOpenChange(false);
+      onCreated(result as CreateWebhookResult);
+    },
+    onError: (err: Error) => {
+      toast.error(err.message || "Failed to create webhook");
+    },
+  });
+
+  const selectedEvents = Object.entries(events)
+    .filter(([, v]) => v)
+    .map(([k]) => k);
+
+  const isValidUrl = (str: string) => {
+    try {
+      new URL(str);
+      return str.startsWith("http://") || str.startsWith("https://");
+    } catch {
+      return false;
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Webhook className="size-4" />
+            Create Webhook
+          </DialogTitle>
+          <DialogDescription>
+            Add a new webhook endpoint to receive event notifications from Report Flow.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="webhook-url">Endpoint URL</Label>
+            <Input
+              id="webhook-url"
+              placeholder="https://your-server.com/webhook"
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+            />
+            <p className="text-xs text-muted-foreground">
+              We'll send POST requests to this URL with event payloads.
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Events</Label>
+            <div className="flex flex-col gap-3">
+              <label className="flex items-center gap-2 text-sm">
+                <Checkbox
+                  checked={events["batch.completed"] === true}
+                  onCheckedChange={(checked) =>
+                    setEvents((s) => ({ ...s, "batch.completed": Boolean(checked) }))
+                  }
+                />
+                <span className="font-medium">batch.completed</span>
+                <span className="text-muted-foreground">— When a batch finishes processing</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Cancel
+          </Button>
+          <Button
+            onClick={() => {
+              if (!url.trim()) {
+                toast.error("Please enter a webhook URL");
+                return;
+              }
+              if (!isValidUrl(url.trim())) {
+                toast.error("Please enter a valid URL starting with http:// or https://");
+                return;
+              }
+              if (selectedEvents.length === 0) {
+                toast.error("Select at least one event");
+                return;
+              }
+              createMutation.mutate({ url: url.trim(), events: selectedEvents });
+            }}
+            disabled={createMutation.isPending}
+          >
+            {createMutation.isPending ? "Creating..." : "Create Webhook"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Webhook Secret Display Dialog — shown ONCE after creation
+// ---------------------------------------------------------------------------
+
+function WebhookSecretDisplayDialog({
+  open,
+  onOpenChange,
+  result,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  result: CreateWebhookResult | null;
+}) {
+  if (!result) return null;
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Webhook className="size-4 text-success" />
+            Webhook Created
+          </DialogTitle>
+          <DialogDescription>
+            Copy this signing secret now. You won't be able to see it again after closing this
+            dialog.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-3">
+          <div className="rounded-lg border border-border bg-surface-2 p-4">
+            <p className="mb-2 text-xs text-muted-foreground">
+              <Shield className="mr-1 inline size-3" />
+              Your webhook signing secret
+            </p>
+            <CopyBlock value={result.secret} />
+          </div>
+
+          <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 p-3">
+            <p className="flex items-center gap-2 text-xs text-amber-500">
+              <AlertTriangle className="size-3.5" />
+              <span className="font-medium">Important:</span> Use this secret to verify webhook
+              signatures. It will not be shown again.
+            </p>
+          </div>
+
+          <div className="flex flex-wrap gap-4 text-xs text-muted-foreground">
+            <span>
+              URL: <span className="font-medium text-foreground">{result.url}</span>
+            </span>
+            <span>
+              Events:{" "}
+              <span className="font-medium text-foreground">{result.events.join(", ")}</span>
+            </span>
+          </div>
+        </div>
+
+        <DialogFooter>
+          <Button onClick={() => onOpenChange(false)}>I've saved the secret</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Delete Webhook Confirmation Dialog
+// ---------------------------------------------------------------------------
+
+function DeleteWebhookDialog({
+  open,
+  onOpenChange,
+  target,
+  onConfirm,
+  isPending,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  target: WebhookRow | null;
+  onConfirm: () => void;
+  isPending: boolean;
+}) {
+  return (
+    <AlertDialog open={open} onOpenChange={onOpenChange}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Delete webhook?</AlertDialogTitle>
+          <AlertDialogDescription>
+            This will permanently delete the webhook endpoint <strong>{target?.url}</strong>. Any
+            application sending events to this URL will no longer receive notifications.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel disabled={isPending}>Cancel</AlertDialogCancel>
+          <AlertDialogAction
+            onClick={onConfirm}
+            disabled={isPending}
+            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+          >
+            {isPending ? "Deleting..." : "Delete webhook"}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Test Webhook Dialog
+// ---------------------------------------------------------------------------
+
+function TestWebhookDialog({
+  open,
+  onOpenChange,
+  webhook,
+  onTest,
+  isPending,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  webhook: WebhookRow | null;
+  onTest: () => void;
+  isPending: boolean;
+}) {
+  return (
+    <AlertDialog open={open} onOpenChange={onOpenChange}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle className="flex items-center gap-2">
+            <Send className="size-4" />
+            Test Webhook
+          </AlertDialogTitle>
+          <AlertDialogDescription>
+            Send a test payload to <strong>{webhook?.url}</strong> to verify your endpoint is
+            configured correctly.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel disabled={isPending}>Cancel</AlertDialogCancel>
+          <AlertDialogAction onClick={onTest} disabled={isPending}>
+            {isPending ? "Sending..." : "Send test payload"}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Main Page
 // ---------------------------------------------------------------------------
 
@@ -387,12 +688,30 @@ function DevelopersPage() {
   const [createdResult, setCreatedResult] = useState<CreateApiKeyResult | null>(null);
   const [revokeTarget, setRevokeTarget] = useState<ApiKeyRow | null>(null);
 
+  // --- Webhook state ---
+  const [webhookCreateOpen, setWebhookCreateOpen] = useState(false);
+  const [webhookSecretOpen, setWebhookSecretOpen] = useState(false);
+  const [createdWebhookResult, setCreatedWebhookResult] = useState<CreateWebhookResult | null>(
+    null,
+  );
+  const [deleteWebhookTarget, setDeleteWebhookTarget] = useState<WebhookRow | null>(null);
+  const [testWebhookTarget, setTestWebhookTarget] = useState<WebhookRow | null>(null);
+
   // --- Fetch API Keys ---
   const keysQuery = useQuery({
     queryKey: ["api-keys"],
     queryFn: async () => {
       const result = await listApiKeys();
       return (result ?? []) as ApiKeyRow[];
+    },
+  });
+
+  // --- Fetch Webhooks ---
+  const webhooksQuery = useQuery({
+    queryKey: ["webhooks"],
+    queryFn: async () => {
+      const result = await listWebhooks();
+      return (result ?? []) as WebhookRow[];
     },
   });
 
@@ -411,14 +730,49 @@ function DevelopersPage() {
     },
   });
 
+  // --- Delete Webhook mutation ---
+  const deleteWebhookMutation = useMutation({
+    mutationFn: async (webhookId: string) => {
+      return deleteWebhook({ data: { webhookId } });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["webhooks"] });
+      toast.success("Webhook deleted");
+      setDeleteWebhookTarget(null);
+    },
+    onError: (err: Error) => {
+      toast.error(err.message || "Failed to delete webhook");
+    },
+  });
+
+  // --- Test Webhook mutation ---
+  const testWebhookMutation = useMutation({
+    mutationFn: async (webhookId: string) => {
+      return testWebhook({ data: { webhookId } });
+    },
+    onSuccess: () => {
+      toast.success("Test payload sent successfully");
+      setTestWebhookTarget(null);
+    },
+    onError: (err: Error) => {
+      toast.error(err.message || "Failed to send test payload");
+    },
+  });
+
   const handleKeyCreated = (result: CreateApiKeyResult) => {
     setCreatedResult(result);
     setKeyDisplayOpen(true);
   };
 
+  const handleWebhookCreated = (result: CreateWebhookResult) => {
+    setCreatedWebhookResult(result);
+    setWebhookSecretOpen(true);
+  };
+
   const keys = keysQuery.data ?? [];
   const activeKeys = keys.filter((k) => !k.revoked_at);
   const revokedKeys = keys.filter((k) => k.revoked_at);
+  const webhooks = webhooksQuery.data ?? [];
 
   return (
     <AppShell
@@ -449,6 +803,15 @@ function DevelopersPage() {
           <TabsTrigger value="mcp" className="gap-1.5">
             <Shield className="size-3.5" />
             MCP
+          </TabsTrigger>
+          <TabsTrigger value="webhooks" className="gap-1.5">
+            <Webhook className="size-3.5" />
+            Webhooks
+            {webhooks.length > 0 && (
+              <Badge variant="secondary" className="ml-1 text-[10px]">
+                {webhooks.length}
+              </Badge>
+            )}
           </TabsTrigger>
         </TabsList>
 
@@ -708,6 +1071,103 @@ function DevelopersPage() {
             </CardContent>
           </Card>
         </TabsContent>
+
+        {/* ================================================================ */}
+        {/* Webhooks Tab                                                     */}
+        {/* ================================================================ */}
+        <TabsContent value="webhooks" className="space-y-6">
+          <section className="rounded-xl border border-border bg-surface p-5">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-display text-sm font-semibold">Webhook Endpoints</h2>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Receive real-time notifications when events occur in your workspace.
+                </p>
+              </div>
+              <Button onClick={() => setWebhookCreateOpen(true)} className="gap-1.5">
+                <Webhook className="size-3.5" />
+                Add Webhook
+              </Button>
+            </div>
+
+            {webhooksQuery.isLoading ? (
+              <div className="mt-4 h-24 animate-pulse rounded-lg bg-surface-2" />
+            ) : webhooks.length === 0 ? (
+              <div className="mt-4 flex flex-col items-center gap-2 rounded-lg border border-dashed border-border py-8 text-center">
+                <Webhook className="size-8 text-muted-foreground/40" />
+                <p className="text-sm text-muted-foreground">No webhook endpoints configured</p>
+                <p className="text-xs text-muted-foreground/70">
+                  Add a webhook to start receiving event notifications
+                </p>
+              </div>
+            ) : (
+              <div className="mt-4 overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>URL</TableHead>
+                      <TableHead>Events</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Created</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {webhooks.map((webhook) => (
+                      <TableRow key={webhook.id}>
+                        <TableCell>
+                          <code className="text-mono text-xs text-muted-foreground">
+                            {webhook.url}
+                          </code>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex gap-1">
+                            {webhook.events.map((event) => (
+                              <Badge key={event} variant="secondary" className="text-[10px]">
+                                {event}
+                              </Badge>
+                            ))}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge
+                            variant={webhook.active ? "default" : "secondary"}
+                            className="text-[10px]"
+                          >
+                            {webhook.active ? "Active" : "Inactive"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-xs text-muted-foreground">
+                          {formatDate(webhook.created_at)}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex items-center justify-end gap-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setTestWebhookTarget(webhook)}
+                              title="Send test payload"
+                            >
+                              <Send className="size-3.5" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-destructive hover:text-destructive"
+                              onClick={() => setDeleteWebhookTarget(webhook)}
+                            >
+                              <Trash2 className="size-3.5" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </section>
+        </TabsContent>
       </Tabs>
 
       {/* Dialogs */}
@@ -729,6 +1189,35 @@ function DevelopersPage() {
           if (revokeTarget) revokeMutation.mutate(revokeTarget.id);
         }}
         isPending={revokeMutation.isPending}
+      />
+      {/* Webhook Dialogs */}
+      <CreateWebhookDialog
+        open={webhookCreateOpen}
+        onOpenChange={setWebhookCreateOpen}
+        onCreated={handleWebhookCreated}
+      />
+      <WebhookSecretDisplayDialog
+        open={webhookSecretOpen}
+        onOpenChange={setWebhookSecretOpen}
+        result={createdWebhookResult}
+      />
+      <DeleteWebhookDialog
+        open={!!deleteWebhookTarget}
+        onOpenChange={(open) => !open && setDeleteWebhookTarget(null)}
+        target={deleteWebhookTarget}
+        onConfirm={() => {
+          if (deleteWebhookTarget) deleteWebhookMutation.mutate(deleteWebhookTarget.id);
+        }}
+        isPending={deleteWebhookMutation.isPending}
+      />
+      <TestWebhookDialog
+        open={!!testWebhookTarget}
+        onOpenChange={(open) => !open && setTestWebhookTarget(null)}
+        webhook={testWebhookTarget}
+        onTest={() => {
+          if (testWebhookTarget) testWebhookMutation.mutate(testWebhookTarget.id);
+        }}
+        isPending={testWebhookMutation.isPending}
       />
     </AppShell>
   );

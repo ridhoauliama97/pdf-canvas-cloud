@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { renderPdf } from "@/server/pdf-render";
+import { notifyBatchComplete } from "./webhooks";
 import type { TemplateLayout, PageSetup } from "@/types/template";
 import type { Json } from "@/integrations/supabase/types";
 
@@ -269,6 +270,9 @@ export const createBatch = createServerFn({ method: "POST" as const })
       throw new Error(`Failed to update batch status: ${updateError.message}`);
     }
 
+    // Fire webhook notifications — non-blocking, failures are logged and swallowed
+    await notifyBatchComplete(batchId, companyId);
+
     return {
       batchId,
       status: finalStatus,
@@ -458,6 +462,9 @@ export const retryBatchItems = createServerFn({ method: "POST" as const })
     if (updateError) {
       throw new Error(`Failed to update batch status: ${updateError.message}`);
     }
+
+    // Fire webhook notifications — non-blocking, failures are logged and swallowed
+    await notifyBatchComplete(data.batchId, companyId);
 
     return {
       batchId: data.batchId,
