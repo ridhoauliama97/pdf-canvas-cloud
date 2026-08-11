@@ -3,6 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { useAuth } from "@/hooks/use-auth";
+import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/app-shell";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -10,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Pencil } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -510,10 +512,36 @@ function SettingsPage() {
           </h2>
           <div className="mt-4 space-y-4">
             <div className="flex items-center gap-4">
-              <Avatar className="size-16">
-                <AvatarImage src={profileAvatarUrl || undefined} />
-                <AvatarFallback className="text-lg">{getInitials(profileFullName)}</AvatarFallback>
-              </Avatar>
+              <div className="relative">
+                <Avatar className="size-16">
+                  <AvatarImage src={profileAvatarUrl || undefined} />
+                  <AvatarFallback className="text-lg">
+                    {getInitials(profileFullName)}
+                  </AvatarFallback>
+                </Avatar>
+                <label className="absolute -bottom-1 -right-1 flex size-6 cursor-pointer items-center justify-center rounded-full border border-border bg-background text-muted-foreground hover:bg-accent">
+                  <Pencil className="size-3" />
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (!file || !workspace || !user) return;
+                      const path = `${workspace.id}/avatars/${user.id}-${Date.now()}.${file.name.split(".").pop()}`;
+                      const { data: uploadData } = await supabase.storage
+                        .from("reportflow-bucket")
+                        .upload(path, file, { upsert: true });
+                      if (uploadData) {
+                        const { data: urlData } = await supabase.storage
+                          .from("reportflow-bucket")
+                          .createSignedUrl(path, 365 * 24 * 60 * 60);
+                        if (urlData) setProfileAvatarUrl(urlData.signedUrl);
+                      }
+                    }}
+                  />
+                </label>
+              </div>
               <div className="flex-1 space-y-2">
                 <div className="space-y-2">
                   <Label htmlFor="profile-full-name">Full name</Label>
@@ -522,15 +550,6 @@ function SettingsPage() {
                     value={profileFullName}
                     onChange={(e) => setProfileFullName(e.target.value)}
                     placeholder="Your name"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="profile-avatar-url">Avatar URL</Label>
-                  <Input
-                    id="profile-avatar-url"
-                    value={profileAvatarUrl}
-                    onChange={(e) => setProfileAvatarUrl(e.target.value)}
-                    placeholder="https://example.com/avatar.jpg"
                   />
                 </div>
               </div>
