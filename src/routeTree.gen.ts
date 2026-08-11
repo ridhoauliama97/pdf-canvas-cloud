@@ -19,6 +19,7 @@ import { Route as AuthInviteRouteImport } from './routes/auth.invite'
 import { Route as AuthenticatedTemplatesIndexRouteImport } from './routes/_authenticated.templates.index'
 import { Route as AuthenticatedTemplatesTemplateIdRouteImport } from './routes/_authenticated.templates.$templateId'
 import { Route as ApiV1TemplatesRouteImport } from './routes/api.v1.templates'
+import { Route as ApiWebhooksResendRouteImport } from './routes/api.webhooks.resend'
 import { Route as ApiV1DocumentsDocumentIdRouteImport } from './routes/api.v1.documents.$documentId'
 import { Route as ApiV1DocumentsGenerateRouteImport } from './routes/api.v1.documents.generate'
 
@@ -73,6 +74,11 @@ const ApiV1TemplatesRoute = ApiV1TemplatesRouteImport.update({
   path: '/api/v1/templates',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiWebhooksResendRoute = ApiWebhooksResendRouteImport.update({
+  id: '/api/webhooks/resend',
+  path: '/api/webhooks/resend',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiV1DocumentsDocumentIdRoute =
   ApiV1DocumentsDocumentIdRouteImport.update({
     id: '/api/v1/documents/$documentId',
@@ -94,6 +100,7 @@ export interface FileRoutesByFullPath {
   '/auth/invite': typeof AuthInviteRoute
   '/templates/$templateId': typeof AuthenticatedTemplatesTemplateIdRoute
   '/api/v1/templates': typeof ApiV1TemplatesRoute
+  '/api/webhooks/resend': typeof ApiWebhooksResendRoute
   '/templates/': typeof AuthenticatedTemplatesIndexRoute
   '/api/v1/documents/$documentId': typeof ApiV1DocumentsDocumentIdRoute
   '/api/v1/documents/generate': typeof ApiV1DocumentsGenerateRoute
@@ -107,6 +114,7 @@ export interface FileRoutesByTo {
   '/auth/invite': typeof AuthInviteRoute
   '/templates/$templateId': typeof AuthenticatedTemplatesTemplateIdRoute
   '/api/v1/templates': typeof ApiV1TemplatesRoute
+  '/api/webhooks/resend': typeof ApiWebhooksResendRoute
   '/templates': typeof AuthenticatedTemplatesIndexRoute
   '/api/v1/documents/$documentId': typeof ApiV1DocumentsDocumentIdRoute
   '/api/v1/documents/generate': typeof ApiV1DocumentsGenerateRoute
@@ -122,6 +130,7 @@ export interface FileRoutesById {
   '/auth/invite': typeof AuthInviteRoute
   '/_authenticated/templates/$templateId': typeof AuthenticatedTemplatesTemplateIdRoute
   '/api/v1/templates': typeof ApiV1TemplatesRoute
+  '/api/webhooks/resend': typeof ApiWebhooksResendRoute
   '/_authenticated/templates/': typeof AuthenticatedTemplatesIndexRoute
   '/api/v1/documents/$documentId': typeof ApiV1DocumentsDocumentIdRoute
   '/api/v1/documents/generate': typeof ApiV1DocumentsGenerateRoute
@@ -137,6 +146,7 @@ export interface FileRouteTypes {
     | '/auth/invite'
     | '/templates/$templateId'
     | '/api/v1/templates'
+    | '/api/webhooks/resend'
     | '/templates/'
     | '/api/v1/documents/$documentId'
     | '/api/v1/documents/generate'
@@ -150,6 +160,7 @@ export interface FileRouteTypes {
     | '/auth/invite'
     | '/templates/$templateId'
     | '/api/v1/templates'
+    | '/api/webhooks/resend'
     | '/templates'
     | '/api/v1/documents/$documentId'
     | '/api/v1/documents/generate'
@@ -164,6 +175,7 @@ export interface FileRouteTypes {
     | '/auth/invite'
     | '/_authenticated/templates/$templateId'
     | '/api/v1/templates'
+    | '/api/webhooks/resend'
     | '/_authenticated/templates/'
     | '/api/v1/documents/$documentId'
     | '/api/v1/documents/generate'
@@ -174,6 +186,7 @@ export interface RootRouteChildren {
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   AuthRoute: typeof AuthRouteWithChildren
   ApiV1TemplatesRoute: typeof ApiV1TemplatesRoute
+  ApiWebhooksResendRoute: typeof ApiWebhooksResendRoute
   ApiV1DocumentsDocumentIdRoute: typeof ApiV1DocumentsDocumentIdRoute
   ApiV1DocumentsGenerateRoute: typeof ApiV1DocumentsGenerateRoute
 }
@@ -250,6 +263,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiV1TemplatesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/webhooks/resend': {
+      id: '/api/webhooks/resend'
+      path: '/api/webhooks/resend'
+      fullPath: '/api/webhooks/resend'
+      preLoaderRoute: typeof ApiWebhooksResendRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/v1/documents/$documentId': {
       id: '/api/v1/documents/$documentId'
       path: '/api/v1/documents/$documentId'
@@ -302,6 +322,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   AuthRoute: AuthRouteWithChildren,
   ApiV1TemplatesRoute: ApiV1TemplatesRoute,
+  ApiWebhooksResendRoute: ApiWebhooksResendRoute,
   ApiV1DocumentsDocumentIdRoute: ApiV1DocumentsDocumentIdRoute,
   ApiV1DocumentsGenerateRoute: ApiV1DocumentsGenerateRoute,
 }
