@@ -640,7 +640,7 @@ function DevelopersPage() {
                   code={`curl -X POST \\
   -H "Authorization: Bearer rf_...your-api-key" \\
   -H "Content-Type: application/json" \\
-  -d '{"template_id": "...", "data": {...}}' \\
+  -d '{"templateId": "...", "data": {...}}' \\
   ${API_BASE_URL}/api/v1/documents/generate`}
                 />
               </div>

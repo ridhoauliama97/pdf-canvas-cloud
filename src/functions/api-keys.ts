@@ -19,10 +19,9 @@ async function hashKey(key: string): Promise<string> {
 /** Generate a random API key: `rf_` prefix + 48 alphanumeric characters. */
 function generateApiKey(): string {
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  const random = Array.from(
-    { length: 48 },
-    () => chars[Math.floor(Math.random() * chars.length)],
-  ).join("");
+  const bytes = new Uint8Array(48);
+  crypto.getRandomValues(bytes);
+  const random = Array.from(bytes, (b) => chars[b % chars.length]).join("");
   return `rf_${random}`;
 }
 
@@ -59,9 +58,20 @@ async function getUserCompanyId(userId: string): Promise<string> {
  * - Stores only the SHA-256 hash and a short prefix in the database.
  * - Returns the full key **once** — it cannot be retrieved again.
  */
+const VALID_SCOPES = ["read", "generate"];
+
 export const createApiKey = createServerFn({ method: "POST" as const })
   .middleware([requireSupabaseAuth])
-  .validator((input: { name: string; scopes: string[] }) => input)
+  .validator((input: { name: string; scopes: string[] }) => {
+    // Validate scopes against whitelist
+    const invalidScopes = input.scopes.filter((s) => !VALID_SCOPES.includes(s));
+    if (invalidScopes.length > 0) {
+      throw new Error(
+        `Invalid scopes: ${invalidScopes.join(", ")}. Valid scopes: ${VALID_SCOPES.join(", ")}`,
+      );
+    }
+    return input;
+  })
   .handler(async ({ data, context }) => {
     const companyId = await getUserCompanyId(context.userId);
     const key = generateApiKey();

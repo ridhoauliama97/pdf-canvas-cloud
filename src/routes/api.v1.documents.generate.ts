@@ -41,7 +41,11 @@ export const Route = createFileRoute("/api/v1/documents/generate")({
             return jsonError(400, "VALIDATION_ERROR", "Missing or invalid data field");
           }
 
-          const result = await handleGenerateDocument(context.companyId, { templateId, data });
+          const result = await handleGenerateDocument(
+            context.companyId,
+            { templateId, data },
+            context.keyId,
+          );
           return json({ data: result });
         } catch (error) {
           if (error instanceof ApiError) {

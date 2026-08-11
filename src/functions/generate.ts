@@ -150,6 +150,8 @@ export const generateDocument = createServerFn({ method: "POST" as const })
       .eq("id", documentId);
 
     if (updateError) {
+      // Rollback: delete the uploaded file if status update fails
+      await supabaseAdmin.storage.from("reportflow-bucket").remove([storagePath]);
       throw new Error(`Failed to update document status: ${updateError.message}`);
     }
 

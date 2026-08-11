@@ -58,8 +58,8 @@ export const apiAuthMiddleware = createMiddleware().server(async ({ next, reques
     });
   }
 
-  // No API key — fall through to session auth downstream
-  return next();
+  // No API key — reject (API routes require Bearer token)
+  throw jsonUnauthorized("API key authentication required");
 });
 
 // ---------------------------------------------------------------------------

@@ -89,6 +89,7 @@ export interface GenerateDocumentResult {
 export async function handleGenerateDocument(
   companyId: string,
   input: GenerateDocumentInput,
+  keyId?: string,
 ): Promise<GenerateDocumentResult> {
   // 1. Fetch template and verify ownership + published status
   const { data: template, error: templateError } = await supabaseAdmin
@@ -157,6 +158,7 @@ export async function handleGenerateDocument(
     version_id: version.id,
     status: "generating",
     data_snapshot: input.data as unknown as Json,
+    generated_by: keyId ?? null,
   });
 
   if (insertError) {
@@ -184,6 +186,8 @@ export async function handleGenerateDocument(
     .eq("id", documentId);
 
   if (updateError) {
+    // Rollback: delete the uploaded file if status update fails
+    await supabaseAdmin.storage.from("reportflow-bucket").remove([storagePath]);
     throw new ApiError(500, "INTERNAL", `Failed to update document status: ${updateError.message}`);
   }
 

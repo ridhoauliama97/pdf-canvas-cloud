@@ -89,7 +89,7 @@ function renderText(el: CanvasElement, data: unknown, scope?: unknown): React.Re
         scope,
       );
 
-  if (!content) return null;
+  if (content === null || content === undefined) return null;
 
   return React.createElement(Text, { style: toPdfStyle(el.style) as any, key: el.id }, content);
 }
@@ -107,7 +107,7 @@ function renderField(el: CanvasElement, data: unknown, scope?: unknown): React.R
     scope,
   );
 
-  if (!content) return null;
+  if (content === null || content === undefined) return null;
 
   return React.createElement(Text, { style: toPdfStyle(el.style) as any, key: el.id }, content);
 }
@@ -321,17 +321,25 @@ function renderShape(el: CanvasElement): React.ReactNode {
   }
 
   // Default: rect
-  return React.createElement(Rect, {
-    key: el.id,
-    x: el.x,
-    y: el.y,
-    width: el.w,
-    height: el.h,
-    rx: style.radius ?? 0,
-    fill,
-    stroke,
-    strokeWidth,
-  });
+  return React.createElement(
+    Svg,
+    {
+      key: el.id,
+      width: el.w,
+      height: el.h,
+      style: absolutePos(el, {} as PageSetup) as any,
+    },
+    React.createElement(Rect, {
+      x: 0,
+      y: 0,
+      width: el.w,
+      height: el.h,
+      rx: style.radius ?? 0,
+      fill,
+      stroke,
+      strokeWidth,
+    }),
+  );
 }
 
 /** Render a QR code element (placeholder — actual QR generation needs a library). */
