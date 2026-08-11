@@ -481,7 +481,7 @@ function TemplatesPage() {
                   <div className="text-mono mt-auto flex items-center gap-3 pt-5 text-[11px] text-muted-foreground">
                     <span>{template.page_format}</span>
                     <span>·</span>
-                    <span>{template.doc_type.replace("_", " ")}</span>
+                    <span>{(template.doc_type ?? "document").replace("_", " ")}</span>
                   </div>
                 </Link>
               ))}

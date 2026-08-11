@@ -270,7 +270,7 @@ function renderImage(el: CanvasElement, data: unknown, scope?: unknown): React.R
 }
 
 /** Render a shape element (rect, line, ellipse). */
-function renderShape(el: CanvasElement): React.ReactNode {
+function renderShape(el: CanvasElement, page: PageSetup): React.ReactNode {
   const shape = el.shape || "rect";
   const style = el.style;
   const stroke = style.borderColor || "#000000";
@@ -284,7 +284,7 @@ function renderShape(el: CanvasElement): React.ReactNode {
         key: el.id,
         width: el.w,
         height: el.h,
-        style: absolutePos(el, {} as PageSetup) as any,
+        style: absolutePos(el, page) as any,
       },
       React.createElement(Line, {
         x1: 0,
@@ -304,7 +304,7 @@ function renderShape(el: CanvasElement): React.ReactNode {
         key: el.id,
         width: el.w,
         height: el.h,
-        style: absolutePos(el, {} as PageSetup) as any,
+        style: absolutePos(el, page) as any,
       },
       React.createElement(Rect, {
         x: 0,
@@ -327,7 +327,7 @@ function renderShape(el: CanvasElement): React.ReactNode {
       key: el.id,
       width: el.w,
       height: el.h,
-      style: absolutePos(el, {} as PageSetup) as any,
+      style: absolutePos(el, page) as any,
     },
     React.createElement(Rect, {
       x: 0,
@@ -481,7 +481,7 @@ export async function renderPdf(
           case "image":
             return renderImage(el, data);
           case "shape":
-            return renderShape(el);
+            return renderShape(el, page);
           case "qrcode":
             return renderQRCode(el, data);
           case "barcode":
@@ -608,7 +608,7 @@ export async function renderPdfToFile(
           case "image":
             return renderImage(el, data);
           case "shape":
-            return renderShape(el);
+            return renderShape(el, page);
           case "qrcode":
             return renderQRCode(el, data);
           case "barcode":
