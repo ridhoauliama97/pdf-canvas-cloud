@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as InviteRouteImport } from './routes/invite'
 import { Route as AuthenticatedBatchesRouteImport } from './routes/_authenticated.batches'
 import { Route as AuthenticatedDevelopersRouteImport } from './routes/_authenticated.developers'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated.settings'
@@ -35,6 +36,11 @@ const AuthenticatedRoute = AuthenticatedRouteImport.update({
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InviteRoute = InviteRouteImport.update({
+  id: '/invite',
+  path: '/invite',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedBatchesRoute = AuthenticatedBatchesRouteImport.update({
@@ -94,6 +100,7 @@ const ApiV1DocumentsGenerateRoute = ApiV1DocumentsGenerateRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRouteWithChildren
+  '/invite': typeof InviteRoute
   '/batches': typeof AuthenticatedBatchesRoute
   '/developers': typeof AuthenticatedDevelopersRoute
   '/settings': typeof AuthenticatedSettingsRoute
@@ -108,6 +115,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRouteWithChildren
+  '/invite': typeof InviteRoute
   '/batches': typeof AuthenticatedBatchesRoute
   '/developers': typeof AuthenticatedDevelopersRoute
   '/settings': typeof AuthenticatedSettingsRoute
@@ -124,6 +132,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/auth': typeof AuthRouteWithChildren
+  '/invite': typeof InviteRoute
   '/_authenticated/batches': typeof AuthenticatedBatchesRoute
   '/_authenticated/developers': typeof AuthenticatedDevelopersRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
@@ -140,6 +149,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/invite'
     | '/batches'
     | '/developers'
     | '/settings'
@@ -154,6 +164,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/invite'
     | '/batches'
     | '/developers'
     | '/settings'
@@ -169,6 +180,7 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/invite'
     | '/_authenticated/batches'
     | '/_authenticated/developers'
     | '/_authenticated/settings'
@@ -185,6 +197,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   AuthRoute: typeof AuthRouteWithChildren
+  InviteRoute: typeof InviteRoute
   ApiV1TemplatesRoute: typeof ApiV1TemplatesRoute
   ApiWebhooksResendRoute: typeof ApiWebhooksResendRoute
   ApiV1DocumentsDocumentIdRoute: typeof ApiV1DocumentsDocumentIdRoute
@@ -212,6 +225,13 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/invite': {
+      id: '/invite'
+      path: '/invite'
+      fullPath: '/invite'
+      preLoaderRoute: typeof InviteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/batches': {
@@ -321,6 +341,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   AuthRoute: AuthRouteWithChildren,
+  InviteRoute: InviteRoute,
   ApiV1TemplatesRoute: ApiV1TemplatesRoute,
   ApiWebhooksResendRoute: ApiWebhooksResendRoute,
   ApiV1DocumentsDocumentIdRoute: ApiV1DocumentsDocumentIdRoute,

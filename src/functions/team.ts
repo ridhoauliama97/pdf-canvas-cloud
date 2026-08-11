@@ -116,7 +116,7 @@ export const inviteMember = createServerFn({ method: "POST" as const })
     }
 
     // Send invitation email
-    const inviteUrl = `${typeof window !== "undefined" ? window.location.origin : "https://reportflow.dev"}/auth/invite?token=${token}`;
+    const inviteUrl = `${typeof window !== "undefined" ? window.location.origin : "https://reportflow.dev"}/invite?token=${token}`;
 
     // Get company name and inviter name
     const { data: company } = await supabaseAdmin
