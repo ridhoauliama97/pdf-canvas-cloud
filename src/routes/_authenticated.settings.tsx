@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Pencil } from "lucide-react";
+import { ImageCropDialog } from "@/components/editor/image-crop-dialog";
 import {
   Dialog,
   DialogContent,
@@ -97,6 +98,9 @@ function SettingsPage() {
   // Profile settings state
   const [profileFullName, setProfileFullName] = useState("");
   const [profileAvatarUrl, setProfileAvatarUrl] = useState("");
+  const [profileAvatarBlob, setProfileAvatarBlob] = useState<Blob | null>(null);
+  const [cropDialogOpen, setCropDialogOpen] = useState(false);
+  const [selectedImageSrc, setSelectedImageSrc] = useState<string | null>(null);
 
   // Initialize workspace form when data loads
   const [workspaceFormInitialized, setWorkspaceFormInitialized] = useState(false);
@@ -200,14 +204,33 @@ function SettingsPage() {
   // Update profile mutation
   const updateProfileMutation = useMutation({
     mutationFn: async () => {
+      let avatarUrl = profileAvatarUrl;
+
+      // Upload cropped avatar if present
+      if (profileAvatarBlob && user && workspace) {
+        const path = `${workspace.id}/avatars/${user.id}-${Date.now()}.jpg`;
+        const { error: uploadError } = await supabase.storage
+          .from("reportflow-bucket")
+          .upload(path, profileAvatarBlob, { contentType: "image/jpeg" });
+
+        if (uploadError) throw uploadError;
+
+        const { data: urlData } = await supabase.storage
+          .from("reportflow-bucket")
+          .createSignedUrl(path, 365 * 24 * 60 * 60);
+
+        if (urlData) avatarUrl = urlData.signedUrl;
+      }
+
       return updateProfile({
         data: {
           full_name: profileFullName,
-          avatar_url: profileAvatarUrl,
+          avatar_url: avatarUrl,
         },
       });
     },
     onSuccess: () => {
+      setProfileAvatarBlob(null);
       queryClient.invalidateQueries({ queryKey: ["auth"] });
     },
   });
@@ -525,19 +548,13 @@ function SettingsPage() {
                     type="file"
                     accept="image/*"
                     className="hidden"
-                    onChange={async (e) => {
+                    onChange={(e) => {
                       const file = e.target.files?.[0];
-                      if (!file || !workspace || !user) return;
-                      const path = `${workspace.id}/avatars/${user.id}-${Date.now()}.${file.name.split(".").pop()}`;
-                      const { data: uploadData } = await supabase.storage
-                        .from("reportflow-bucket")
-                        .upload(path, file, { upsert: true });
-                      if (uploadData) {
-                        const { data: urlData } = await supabase.storage
-                          .from("reportflow-bucket")
-                          .createSignedUrl(path, 365 * 24 * 60 * 60);
-                        if (urlData) setProfileAvatarUrl(urlData.signedUrl);
-                      }
+                      if (!file) return;
+                      const url = URL.createObjectURL(file);
+                      setSelectedImageSrc(url);
+                      setCropDialogOpen(true);
+                      e.target.value = "";
                     }}
                   />
                 </label>
@@ -563,6 +580,20 @@ function SettingsPage() {
           </div>
         </section>
       </div>
+
+      {/* Image Crop Dialog */}
+      <ImageCropDialog
+        open={cropDialogOpen}
+        onOpenChange={setCropDialogOpen}
+        imageSrc={selectedImageSrc}
+        onApply={(croppedBlob) => {
+          const url = URL.createObjectURL(croppedBlob);
+          setProfileAvatarUrl(url);
+          setProfileAvatarBlob(croppedBlob);
+          if (selectedImageSrc) URL.revokeObjectURL(selectedImageSrc);
+          setSelectedImageSrc(null);
+        }}
+      />
     </AppShell>
   );
 }
