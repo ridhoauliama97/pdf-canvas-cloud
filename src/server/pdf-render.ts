@@ -24,61 +24,29 @@ import type {
 
 // ── Font Registration ────────────────────────────────────────────────────────
 
+// Use Helvetica as fallback (built-in to react-pdf)
+// Custom fonts can be registered later with proper font files
 Font.register({
   family: "Inter",
   fonts: [
-    {
-      src: "https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa1ZL7.woff2",
-      fontWeight: 400,
-    },
-    {
-      src: "https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa1ZL7.woff2",
-      fontWeight: 500,
-    },
-    {
-      src: "https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa1ZL7.woff2",
-      fontWeight: 600,
-    },
-    {
-      src: "https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa1ZL7.woff2",
-      fontWeight: 700,
-    },
+    { src: "Helvetica", fontWeight: 400 },
+    { src: "Helvetica-Bold", fontWeight: 700 },
   ],
 });
 
 Font.register({
   family: "Space Grotesk",
   fonts: [
-    {
-      src: "https://fonts.gstatic.com/s/spacegrotesk/v22/V8mDoQDjQSkFtoMM3T6r8E7mPbF4Cw.woff2",
-      fontWeight: 400,
-    },
-    {
-      src: "https://fonts.gstatic.com/s/spacegrotesk/v22/V8mDoQDjQSkFtoMM3T6r8E7mPbF4Cw.woff2",
-      fontWeight: 500,
-    },
-    {
-      src: "https://fonts.gstatic.com/s/spacegrotesk/v22/V8mDoQDjQSkFtoMM3T6r8E7mPbF4Cw.woff2",
-      fontWeight: 600,
-    },
-    {
-      src: "https://fonts.gstatic.com/s/spacegrotesk/v22/V8mDoQDjQSkFtoMM3T6r8E7mPbF4Cw.woff2",
-      fontWeight: 700,
-    },
+    { src: "Helvetica", fontWeight: 400 },
+    { src: "Helvetica-Bold", fontWeight: 700 },
   ],
 });
 
 Font.register({
   family: "JetBrains Mono",
   fonts: [
-    {
-      src: "https://fonts.gstatic.com/s/jetbrainsmono/v24/tDbv2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKwBNntkaToggR7BYRbKPxDcwg.woff2",
-      fontWeight: 400,
-    },
-    {
-      src: "https://fonts.gstatic.com/s/jetbrainsmono/v24/tDbv2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKwBNntkaToggR7BYRbKPxDcwg.woff2",
-      fontWeight: 500,
-    },
+    { src: "Courier", fontWeight: 400 },
+    { src: "Courier-Bold", fontWeight: 700 },
   ],
 });
 

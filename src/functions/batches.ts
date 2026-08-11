@@ -214,15 +214,18 @@ export const createBatch = createServerFn({ method: "POST" as const })
     let processedCount = 0;
     let failedCount = 0;
 
-    for (const item of batchItems) {
-      const itemData = data.items.find((i) => i.templateId === item.template_id);
+    for (let i = 0; i < batchItems.length; i++) {
+      const item = batchItems[i];
+      const itemData = data.items[i];
 
-      if (!itemData) {
+      if (!item || !itemData) {
         // Mark as failed — should not happen but guard against it
 
-        await (supabaseAdmin.from("batch_items") as any)
-          .update({ status: "failed", error: "Item data not found" })
-          .eq("id", item.id);
+        if (item) {
+          await (supabaseAdmin.from("batch_items") as any)
+            .update({ status: "failed", error: "Item data not found" })
+            .eq("id", item.id);
+        }
         failedCount++;
         continue;
       }

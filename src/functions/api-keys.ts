@@ -74,6 +74,19 @@ export const createApiKey = createServerFn({ method: "POST" as const })
   })
   .handler(async ({ data, context }) => {
     const companyId = await getUserCompanyId(context.userId);
+
+    // Only admins can create API keys
+    const { data: roleCheck } = await supabaseAdmin
+      .from("company_members")
+      .select("role")
+      .eq("company_id", companyId)
+      .eq("user_id", context.userId)
+      .single();
+
+    if (roleCheck?.role !== "admin") {
+      throw new Error("Only admins can create API keys");
+    }
+
     const key = generateApiKey();
     const keyHash = await hashKey(key);
     // Prefix: rf_ + first 8 random chars (11 chars total)
