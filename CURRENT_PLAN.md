@@ -18,7 +18,7 @@
 | 10    | ⏳ Belum   | 0/3      |
 | 11    | ⏳ Belum   | 0/4      |
 
-**Total: 26/44 subtasks selesai (59%)**
+**Total: 26/44 subtasks selesai (66%)**
 
 ---
 
