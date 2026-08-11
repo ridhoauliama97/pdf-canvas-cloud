@@ -6,10 +6,12 @@ import {
   Copy,
   Download,
   Eye,
+  History,
   Loader2,
   Pencil,
+  Redo,
   Save,
-  Trash2,
+  Undo,
   Upload,
   ZoomIn,
   ZoomOut,
@@ -18,10 +20,15 @@ import { toast } from "sonner";
 import { generateDocument } from "@/functions/generate";
 import { supabase } from "@/integrations/supabase/client";
 import { useWorkspace } from "@/hooks/use-workspace";
+import { useEditorHistory } from "@/hooks/use-editor-history";
+import { useKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts";
 import { jsonValue } from "@/lib/json";
 import { deriveSchema } from "@/lib/template-engine";
 import { makeElement, newId } from "@/lib/starter-templates";
 import { EditorCanvas } from "@/components/editor/canvas";
+import { PropertyInspector } from "@/components/editor/property-inspector";
+import { VersionHistory } from "@/components/editor/version-history";
+import { ImageUpload } from "@/components/editor/image-upload";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -137,7 +144,14 @@ function EditorPage() {
   const { canEdit } = useWorkspace();
   const queryClient = useQueryClient();
 
-  const [elements, setElements] = useState<CanvasElement[]>([]);
+  const {
+    state: elements,
+    setState: setElements,
+    undo,
+    redo,
+    canUndo,
+    canRedo,
+  } = useEditorHistory<CanvasElement[]>([]);
   const [page, setPage] = useState<PageSetup | null>(null);
   const [sampleText, setSampleText] = useState("{}");
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -193,6 +207,16 @@ function EditorPage() {
   }, [sampleText]);
 
   const selected = elements.find((element) => element.id === selectedId) ?? null;
+
+  // Keyboard shortcuts
+  useKeyboardShortcuts({
+    selected,
+    setElements,
+    setSelectedId,
+    undo,
+    redo,
+    setDirty,
+  });
 
   const update = (patch: Partial<CanvasElement>) => {
     if (!selected) return;
@@ -288,6 +312,28 @@ function EditorPage() {
         {dirty && <span className="text-xs text-muted-foreground">unsaved changes</span>}
 
         <div className="ml-auto flex items-center gap-2">
+          <div className="flex items-center gap-0.5">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-7"
+              onClick={undo}
+              disabled={!canUndo}
+              title="Undo (Ctrl+Z)"
+            >
+              <Undo className="size-3.5" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-7"
+              onClick={redo}
+              disabled={!canRedo}
+              title="Redo (Ctrl+Shift+Z)"
+            >
+              <Redo className="size-3.5" />
+            </Button>
+          </div>
           <div className="flex items-center gap-1 rounded-md border border-border p-0.5">
             <Button
               variant="ghost"
@@ -442,6 +488,10 @@ function EditorPage() {
               <TabsTrigger value="element">Element</TabsTrigger>
               <TabsTrigger value="data">Sample data</TabsTrigger>
               <TabsTrigger value="page">Page</TabsTrigger>
+              <TabsTrigger value="versions">
+                <History className="mr-1 size-3.5" />
+                Versions
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="element" className="min-h-0 flex-1 overflow-y-auto px-4 pb-6">
@@ -451,22 +501,28 @@ function EditorPage() {
                 </p>
               ) : (
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <Badge variant="secondary">{selected.type}</Badge>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-destructive"
-                      onClick={() => {
-                        setElements((current) => current.filter((item) => item.id !== selected.id));
-                        setSelectedId(null);
-                        setDirty(true);
-                      }}
-                    >
-                      <Trash2 className="size-4" /> Delete
-                    </Button>
-                  </div>
+                  <PropertyInspector
+                    selected={selected}
+                    onUpdate={update}
+                    onDelete={() => {
+                      setElements((current) => current.filter((item) => item.id !== selected.id));
+                      setSelectedId(null);
+                      setDirty(true);
+                    }}
+                    onDuplicate={() => {
+                      const copy = {
+                        ...selected,
+                        id: newId(),
+                        x: selected.x + 12,
+                        y: selected.y + 12,
+                      };
+                      setElements((current) => [...current, copy]);
+                      setSelectedId(copy.id);
+                      setDirty(true);
+                    }}
+                  />
 
+                  {/* Type-specific fields */}
                   {(selected.type === "text" || selected.type === "pagenumber") && (
                     <div className="space-y-1.5">
                       <Label>Text (supports {"{{merge.tags}}"})</Label>
@@ -580,11 +636,10 @@ function EditorPage() {
 
                   {selected.type === "image" && (
                     <div className="space-y-1.5">
-                      <Label>Image URL</Label>
-                      <Input
+                      <Label>Image</Label>
+                      <ImageUpload
                         value={selected.src ?? ""}
-                        onChange={(event) => update({ src: event.target.value })}
-                        placeholder="https://… or {{company.logo}}"
+                        onChange={(url) => update({ src: url })}
                       />
                     </div>
                   )}
@@ -774,6 +829,15 @@ function EditorPage() {
                   ))}
                 </div>
               </div>
+            </TabsContent>
+
+            <TabsContent value="versions" className="min-h-0 flex-1 overflow-y-auto px-4 pb-6">
+              <VersionHistory
+                templateId={templateId}
+                currentVersionId={template.data?.version.id ?? null}
+                canEdit={canEdit}
+                onRollback={() => setDirty(false)}
+              />
             </TabsContent>
           </Tabs>
         </aside>

@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { FileText, Loader2, Plus, Sparkles } from "lucide-react";
+import { FileText, Loader2, Plus, Search, Sparkles, X } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useWorkspace } from "@/hooks/use-workspace";
@@ -20,8 +20,37 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { jsonValue } from "@/lib/json";
+
+const DOC_TYPE_OPTIONS = [
+  { value: "all", label: "All types" },
+  { value: "invoice", label: "Invoice" },
+  { value: "quotation", label: "Quotation" },
+  { value: "purchase_order", label: "Purchase Order" },
+  { value: "receipt", label: "Receipt" },
+  { value: "delivery_note", label: "Delivery Note" },
+  { value: "contract", label: "Contract" },
+] as const;
+
+const STATUS_OPTIONS = ["all", "draft", "published"] as const;
+type StatusFilter = (typeof STATUS_OPTIONS)[number];
+
+function useDebouncedValue(value: string, delay = 300) {
+  const [debounced, setDebounced] = useState(value);
+  useEffect(() => {
+    const id = window.setTimeout(() => setDebounced(value), delay);
+    return () => window.clearTimeout(id);
+  }, [value, delay]);
+  return debounced;
+}
 
 export const Route = createFileRoute("/_authenticated/templates/")({
   head: () => ({
@@ -203,8 +232,95 @@ function NewTemplateDialog({ companyId }: { companyId: string }) {
   );
 }
 
+function FilterBar({
+  search,
+  onSearchChange,
+  statusFilter,
+  onStatusChange,
+  docTypeFilter,
+  onDocTypeChange,
+  counts,
+}: {
+  search: string;
+  onSearchChange: (value: string) => void;
+  statusFilter: StatusFilter;
+  onStatusChange: (value: StatusFilter) => void;
+  docTypeFilter: string;
+  onDocTypeChange: (value: string) => void;
+  counts: { all: number; draft: number; published: number };
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  return (
+    <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+      <div className="relative flex-1">
+        <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          ref={inputRef}
+          value={search}
+          onChange={(e) => onSearchChange(e.target.value)}
+          placeholder="Search templates..."
+          className="pl-9 pr-9"
+        />
+        {search && (
+          <button
+            type="button"
+            onClick={() => {
+              onSearchChange("");
+              inputRef.current?.focus();
+            }}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground"
+          >
+            <X className="size-4" />
+          </button>
+        )}
+      </div>
+
+      <div className="flex items-center gap-2">
+        <div className="inline-flex items-center rounded-lg bg-muted p-1 text-muted-foreground">
+          {STATUS_OPTIONS.map((status) => (
+            <button
+              key={status}
+              type="button"
+              onClick={() => onStatusChange(status)}
+              className={cn(
+                "inline-flex items-center gap-1.5 whitespace-nowrap rounded-md px-3 py-1.5 text-sm font-medium transition-all",
+                statusFilter === status
+                  ? "bg-background text-foreground shadow"
+                  : "hover:text-foreground",
+              )}
+            >
+              {status === "all" ? "All" : status.charAt(0).toUpperCase() + status.slice(1)}
+              <span className="text-xs text-muted-foreground">{counts[status]}</span>
+            </button>
+          ))}
+        </div>
+
+        <Select value={docTypeFilter} onValueChange={onDocTypeChange}>
+          <SelectTrigger className="w-[160px]">
+            <SelectValue placeholder="All types" />
+          </SelectTrigger>
+          <SelectContent>
+            {DOC_TYPE_OPTIONS.map((opt) => (
+              <SelectItem key={opt.value} value={opt.value}>
+                {opt.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+    </div>
+  );
+}
+
 function TemplatesPage() {
   const { workspace, isLoading, canEdit } = useWorkspace();
+
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const [docTypeFilter, setDocTypeFilter] = useState("all");
+
+  const debouncedSearch = useDebouncedValue(search);
 
   const templates = useQuery({
     queryKey: ["templates", workspace?.id],
@@ -219,6 +335,46 @@ function TemplatesPage() {
       return (data ?? []) as TemplateRow[];
     },
   });
+
+  const filteredTemplates = useMemo(() => {
+    if (!templates.data) return [];
+    return templates.data.filter((tpl) => {
+      if (debouncedSearch && !tpl.name.toLowerCase().includes(debouncedSearch.toLowerCase())) {
+        return false;
+      }
+      if (statusFilter !== "all" && tpl.status !== statusFilter) {
+        return false;
+      }
+      if (docTypeFilter !== "all" && tpl.doc_type !== docTypeFilter) {
+        return false;
+      }
+      return true;
+    });
+  }, [templates.data, debouncedSearch, statusFilter, docTypeFilter]);
+
+  const counts = useMemo(() => {
+    const base = templates.data ?? [];
+    const searchMatch = (tpl: TemplateRow) =>
+      !debouncedSearch || tpl.name.toLowerCase().includes(debouncedSearch.toLowerCase());
+    const docTypeMatch = (tpl: TemplateRow) =>
+      docTypeFilter === "all" || tpl.doc_type === docTypeFilter;
+
+    const searchAndDocFiltered = base.filter((tpl) => searchMatch(tpl) && docTypeMatch(tpl));
+
+    return {
+      all: searchAndDocFiltered.length,
+      draft: searchAndDocFiltered.filter((t) => t.status === "draft").length,
+      published: searchAndDocFiltered.filter((t) => t.status === "published").length,
+    };
+  }, [templates.data, debouncedSearch, docTypeFilter]);
+
+  const hasActiveFilters = debouncedSearch || statusFilter !== "all" || docTypeFilter !== "all";
+
+  const clearFilters = useCallback(() => {
+    setSearch("");
+    setStatusFilter("all");
+    setDocTypeFilter("all");
+  }, []);
 
   if (isLoading) {
     return (
@@ -242,6 +398,8 @@ function TemplatesPage() {
     );
   }
 
+  const hasTemplates = (templates.data?.length ?? 0) > 0;
+
   return (
     <AppShell
       title="Templates"
@@ -254,7 +412,7 @@ function TemplatesPage() {
             <Skeleton key={index} className="h-40 rounded-xl" />
           ))}
         </div>
-      ) : (templates.data?.length ?? 0) === 0 ? (
+      ) : !hasTemplates ? (
         <div className="flex flex-col items-center rounded-xl border border-dashed border-border bg-surface/50 px-6 py-20 text-center">
           <span className="flex size-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
             <FileText className="size-6" />
@@ -270,33 +428,64 @@ function TemplatesPage() {
           )}
         </div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {templates.data?.map((template) => (
-            <Link
-              key={template.id}
-              to="/templates/$templateId"
-              params={{ templateId: template.id }}
-              className="group flex flex-col rounded-xl border border-border bg-surface p-5 transition-colors hover:border-primary/60"
-            >
-              <div className="flex items-start justify-between gap-3">
-                <h2 className="text-[15px] leading-snug font-semibold group-hover:text-primary">
-                  {template.name}
-                </h2>
-                <Badge variant={template.status === "published" ? "default" : "secondary"}>
-                  {template.status}
-                </Badge>
-              </div>
-              <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-muted-foreground">
-                {template.description ?? "No description"}
+        <>
+          <FilterBar
+            search={search}
+            onSearchChange={setSearch}
+            statusFilter={statusFilter}
+            onStatusChange={setStatusFilter}
+            docTypeFilter={docTypeFilter}
+            onDocTypeChange={setDocTypeFilter}
+            counts={counts}
+          />
+
+          {filteredTemplates.length === 0 ? (
+            <div className="flex flex-col items-center rounded-xl border border-dashed border-border bg-surface/50 px-6 py-20 text-center">
+              <span className="flex size-12 items-center justify-center rounded-xl bg-muted text-muted-foreground">
+                <Search className="size-6" />
+              </span>
+              <h2 className="text-display mt-5 text-lg font-semibold">
+                No templates match your filters
+              </h2>
+              <p className="mt-1.5 max-w-sm text-sm text-muted-foreground">
+                Try adjusting your search or filter criteria.
               </p>
-              <div className="text-mono mt-auto flex items-center gap-3 pt-5 text-[11px] text-muted-foreground">
-                <span>{template.page_format}</span>
-                <span>·</span>
-                <span>{template.doc_type.replace("_", " ")}</span>
-              </div>
-            </Link>
-          ))}
-        </div>
+              {hasActiveFilters && (
+                <Button variant="outline" className="mt-6" onClick={clearFilters}>
+                  Clear filters
+                </Button>
+              )}
+            </div>
+          ) : (
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+              {filteredTemplates.map((template) => (
+                <Link
+                  key={template.id}
+                  to="/templates/$templateId"
+                  params={{ templateId: template.id }}
+                  className="group flex flex-col rounded-xl border border-border bg-surface p-5 transition-colors hover:border-primary/60"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <h2 className="text-[15px] leading-snug font-semibold group-hover:text-primary">
+                      {template.name}
+                    </h2>
+                    <Badge variant={template.status === "published" ? "default" : "secondary"}>
+                      {template.status}
+                    </Badge>
+                  </div>
+                  <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-muted-foreground">
+                    {template.description ?? "No description"}
+                  </p>
+                  <div className="text-mono mt-auto flex items-center gap-3 pt-5 text-[11px] text-muted-foreground">
+                    <span>{template.page_format}</span>
+                    <span>·</span>
+                    <span>{template.doc_type.replace("_", " ")}</span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
+        </>
       )}
     </AppShell>
   );
