@@ -50,7 +50,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { listApiKeys, createApiKey, revokeApiKey } from "@/functions/api-keys";
 import { listWebhooks, createWebhook, deleteWebhook, testWebhook } from "@/functions/webhooks";
 
@@ -1026,50 +1025,348 @@ function DevelopersPage() {
         </TabsContent>
 
         {/* ================================================================ */}
-        {/* MCP Tab (placeholder)                                            */}
+        {/* MCP Tab                                                          */}
         {/* ================================================================ */}
         <TabsContent value="mcp" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Shield className="size-4" />
-                MCP Server
-                <Badge variant="secondary" className="text-[10px] uppercase">
-                  Coming Soon
-                </Badge>
-              </CardTitle>
-              <CardDescription>
-                The Model Context Protocol server will enable AI assistants and agents to interact
-                directly with your Report Flow workspace.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="rounded-lg border border-dashed border-border p-6 text-center">
-                <Terminal className="mx-auto size-10 text-muted-foreground/30" />
-                <p className="mt-3 text-sm text-muted-foreground">
-                  The MCP server is under development. It will provide:
+          {/* Overview */}
+          <section className="rounded-xl border border-border bg-surface p-5">
+            <h2 className="text-display text-sm font-semibold">MCP Overview</h2>
+            <p className="mt-1 text-xs text-muted-foreground">
+              The <strong>Model Context Protocol (MCP)</strong> is an open standard that lets AI
+              agents and assistants interact with external services through a structured tool
+              interface. Report Flow exposes an MCP server so you can generate documents, query
+              templates, and track batches — all from inside your favourite AI coding assistant.
+            </p>
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              <div className="rounded-lg border border-border bg-surface-2 p-3">
+                <h3 className="text-xs font-semibold">What is MCP?</h3>
+                <p className="mt-1 text-[11px] text-muted-foreground">
+                  A lightweight protocol that gives AI agents typed tools they can call. Think of it
+                  as a function-calling layer between your assistant and the Report Flow API.
                 </p>
-                <ul className="mx-auto mt-3 max-w-md space-y-1 text-xs text-muted-foreground">
-                  <li className="flex items-center justify-center gap-2">
-                    <Check className="size-3 text-success" />
-                    Template listing and preview
-                  </li>
-                  <li className="flex items-center justify-center gap-2">
-                    <Check className="size-3 text-success" />
-                    Document generation via natural language
-                  </li>
-                  <li className="flex items-center justify-center gap-2">
-                    <Check className="size-3 text-success" />
-                    Document status tracking
-                  </li>
-                  <li className="flex items-center justify-center gap-2">
-                    <Check className="size-3 text-success" />
-                    Workspace and settings management
-                  </li>
-                </ul>
               </div>
-            </CardContent>
-          </Card>
+              <div className="rounded-lg border border-border bg-surface-2 p-3">
+                <h3 className="text-xs font-semibold">How to connect</h3>
+                <p className="mt-1 text-[11px] text-muted-foreground">
+                  Add the Report Flow MCP server to your client config (Claude Desktop, Cursor,
+                  etc.) with your API key. The agent can then discover and invoke tools
+                  automatically.
+                </p>
+              </div>
+            </div>
+          </section>
+
+          {/* Available Tools */}
+          <section className="rounded-xl border border-border bg-surface p-5">
+            <h2 className="text-display text-sm font-semibold">Available Tools</h2>
+            <p className="mt-1 text-xs text-muted-foreground">
+              The MCP server exposes four tools. Each accepts JSON parameters and returns structured
+              results.
+            </p>
+
+            <div className="mt-4 space-y-4">
+              {/* list_templates */}
+              <div className="rounded-lg border border-border bg-surface-2 p-4">
+                <div className="flex items-center gap-2">
+                  <code className="text-mono text-xs font-semibold">list_templates</code>
+                  <Badge variant="secondary" className="text-[10px]">
+                    read
+                  </Badge>
+                </div>
+                <p className="mt-1 text-[11px] text-muted-foreground">
+                  List all templates in your workspace, including their variable schemas. Use this
+                  to discover what templates are available before generating documents.
+                </p>
+                <div className="mt-2">
+                  <CodeBlock code={`{\n  "name": "list_templates",\n  "arguments": {}\n}`} />
+                </div>
+              </div>
+
+              {/* get_template_schema */}
+              <div className="rounded-lg border border-border bg-surface-2 p-4">
+                <div className="flex items-center gap-2">
+                  <code className="text-mono text-xs font-semibold">get_template_schema</code>
+                  <Badge variant="secondary" className="text-[10px]">
+                    read
+                  </Badge>
+                </div>
+                <p className="mt-1 text-[11px] text-muted-foreground">
+                  Retrieve the full variable schema for a specific template. Shows every field name,
+                  type, required status, and description — everything needed to fill the template
+                  correctly.
+                </p>
+                <div className="mt-2">
+                  <CodeBlock
+                    code={`{\n  "name": "get_template_schema",\n  "arguments": {\n    "templateId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"\n  }\n}`}
+                  />
+                </div>
+              </div>
+
+              {/* generate_document */}
+              <div className="rounded-lg border border-border bg-surface-2 p-4">
+                <div className="flex items-center gap-2">
+                  <code className="text-mono text-xs font-semibold">generate_document</code>
+                  <Badge className="text-[10px]">generate</Badge>
+                </div>
+                <p className="mt-1 text-[11px] text-muted-foreground">
+                  Generate a PDF document from a template and data payload. Returns a document ID
+                  that can be used to track status and download the result.
+                </p>
+                <div className="mt-2">
+                  <CodeBlock
+                    code={`{\n  "name": "generate_document",\n  "arguments": {\n    "templateId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",\n    "data": {\n      "companyName": "Acme Corp",\n      "invoiceNumber": "INV-2025-001",\n      "amount": 1250.00,\n      "items": [\n        { "description": "Consulting", "quantity": 10, "rate": 125 }\n      ]\n    }\n  }\n}`}
+                  />
+                </div>
+              </div>
+
+              {/* get_batch_status */}
+              <div className="rounded-lg border border-border bg-surface-2 p-4">
+                <div className="flex items-center gap-2">
+                  <code className="text-mono text-xs font-semibold">get_batch_status</code>
+                  <Badge variant="secondary" className="text-[10px]">
+                    read
+                  </Badge>
+                </div>
+                <p className="mt-1 text-[11px] text-muted-foreground">
+                  Check the progress of a batch of generated documents. Useful when you kick off
+                  multiple generations and need to poll for completion.
+                </p>
+                <div className="mt-2">
+                  <CodeBlock
+                    code={`{\n  "name": "get_batch_status",\n  "arguments": {\n    "batchId": "f0e9d8c7-b6a5-4321-fedc-ba9876543210"\n  }\n}`}
+                  />
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Connection Guide */}
+          <section className="rounded-xl border border-border bg-surface p-5">
+            <h2 className="text-display text-sm font-semibold">Connection Guide</h2>
+            <p className="mt-1 text-xs text-muted-foreground">
+              The Report Flow MCP server supports two transport modes. Choose the one that fits your
+              setup.
+            </p>
+
+            <div className="mt-4 space-y-4">
+              {/* Transport options */}
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="rounded-lg border border-border bg-surface-2 p-3">
+                  <h3 className="text-xs font-semibold">stdio (local)</h3>
+                  <p className="mt-1 text-[11px] text-muted-foreground">
+                    The server runs as a child process and communicates over stdin/stdout. Ideal for
+                    local development with Claude Desktop or Cursor.
+                  </p>
+                </div>
+                <div className="rounded-lg border border-border bg-surface-2 p-3">
+                  <h3 className="text-xs font-semibold">HTTP (remote)</h3>
+                  <p className="mt-1 text-[11px] text-muted-foreground">
+                    Connect to a hosted MCP endpoint over HTTPS. Use this for cloud-hosted agents or
+                    server-to-server integrations.
+                  </p>
+                </div>
+              </div>
+
+              {/* Authentication */}
+              <div>
+                <h3 className="text-xs font-semibold">Authentication</h3>
+                <p className="mt-1 text-[11px] text-muted-foreground">
+                  All requests are authenticated with your Report Flow API key. Set it via the{" "}
+                  <code className="text-mono">REPORTFLOW_API_KEY</code> environment variable. You
+                  can create an API key in the <strong>API Keys</strong> tab above.
+                </p>
+                <div className="mt-2">
+                  <CodeBlock code={`export REPORTFLOW_API_KEY="rf_...your-api-key"`} />
+                </div>
+              </div>
+
+              {/* Claude Desktop config */}
+              <div>
+                <h3 className="text-xs font-semibold">Claude Desktop / Claude Code</h3>
+                <p className="mt-1 text-[11px] text-muted-foreground">
+                  Add this to your MCP client config file:
+                </p>
+                <div className="mt-2">
+                  <CodeBlock
+                    code={`{\n  "mcpServers": {\n    "reportflow": {\n      "command": "npx",\n      "args": ["-y", "@reportflow/mcp-server"],\n      "env": {\n        "REPORTFLOW_API_KEY": "rf_...your-api-key"\n      }\n    }\n  }\n}`}
+                  />
+                </div>
+              </div>
+
+              {/* Cursor config */}
+              <div>
+                <h3 className="text-xs font-semibold">Cursor / Windsurf</h3>
+                <p className="mt-1 text-[11px] text-muted-foreground">
+                  Add to <code className="text-mono">.cursor/mcp.json</code> or your global MCP
+                  config:
+                </p>
+                <div className="mt-2">
+                  <CodeBlock
+                    code={`{\n  "mcpServers": {\n    "reportflow": {\n      "command": "npx",\n      "args": ["-y", "@reportflow/mcp-server"],\n      "env": {\n        "REPORTFLOW_API_KEY": "rf_...your-api-key"\n      }\n    }\n  }\n}`}
+                  />
+                </div>
+              </div>
+
+              {/* Remote HTTP config */}
+              <div>
+                <h3 className="text-xs font-semibold">Remote HTTP Endpoint</h3>
+                <p className="mt-1 text-[11px] text-muted-foreground">
+                  If the server is hosted remotely, use the <code className="text-mono">url</code>{" "}
+                  field instead of <code className="text-mono">command</code>:
+                </p>
+                <div className="mt-2">
+                  <CodeBlock
+                    code={`{\n  "mcpServers": {\n    "reportflow": {\n      "url": "https://mcp.reportflow.app/sse",\n      "headers": {\n        "Authorization": "Bearer rf_...your-api-key"\n      }\n    }\n  }\n}`}
+                  />
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Example Tool Calls */}
+          <section className="rounded-xl border border-border bg-surface p-5">
+            <h2 className="text-display text-sm font-semibold">Example Tool Calls</h2>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Full request and response examples for each tool.
+            </p>
+
+            <div className="mt-4 space-y-6">
+              {/* list_templates example */}
+              <div>
+                <h3 className="mb-2 text-xs font-semibold">list_templates</h3>
+                <div className="grid gap-3 lg:grid-cols-2">
+                  <div>
+                    <Badge variant="secondary" className="mb-1 text-[10px]">
+                      Request
+                    </Badge>
+                    <CodeBlock code={`{\n  "name": "list_templates",\n  "arguments": {}\n}`} />
+                  </div>
+                  <div>
+                    <Badge variant="default" className="mb-1 text-[10px]">
+                      Response
+                    </Badge>
+                    <CodeBlock
+                      code={`{\n  "templates": [\n    {\n      "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",\n      "name": "Invoice",\n      "description": "Standard invoice template",\n      "variables": {\n        "companyName": { "type": "string", "required": true },\n        "amount": { "type": "number", "required": true }\n      }\n    },\n    {\n      "id": "b2c3d4e5-f6a7-8901-bcde-f12345678901",\n      "name": "Report",\n      "description": "Monthly report template",\n      "variables": {\n        "month": { "type": "string", "required": true }\n      }\n    }\n  ]\n}`}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* get_template_schema example */}
+              <div>
+                <h3 className="mb-2 text-xs font-semibold">get_template_schema</h3>
+                <div className="grid gap-3 lg:grid-cols-2">
+                  <div>
+                    <Badge variant="secondary" className="mb-1 text-[10px]">
+                      Request
+                    </Badge>
+                    <CodeBlock
+                      code={`{\n  "name": "get_template_schema",\n  "arguments": {\n    "templateId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"\n  }\n}`}
+                    />
+                  </div>
+                  <div>
+                    <Badge variant="default" className="mb-1 text-[10px]">
+                      Response
+                    </Badge>
+                    <CodeBlock
+                      code={`{\n  "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",\n  "name": "Invoice",\n  "schema": {\n    "companyName": {\n      "type": "string",\n      "required": true,\n      "description": "Name of the company"\n    },\n    "invoiceNumber": {\n      "type": "string",\n      "required": true,\n      "description": "Unique invoice ID"\n    },\n    "amount": {\n      "type": "number",\n      "required": true,\n      "description": "Total amount due"\n    },\n    "items": {\n      "type": "array",\n      "required": false,\n      "items": {\n        "description": { "type": "string" },\n        "quantity": { "type": "number" },\n        "rate": { "type": "number" }\n      }\n    }\n  }\n}`}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* generate_document example */}
+              <div>
+                <h3 className="mb-2 text-xs font-semibold">generate_document</h3>
+                <div className="grid gap-3 lg:grid-cols-2">
+                  <div>
+                    <Badge variant="secondary" className="mb-1 text-[10px]">
+                      Request
+                    </Badge>
+                    <CodeBlock
+                      code={`{\n  "name": "generate_document",\n  "arguments": {\n    "templateId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",\n    "data": {\n      "companyName": "Acme Corp",\n      "invoiceNumber": "INV-2025-001",\n      "amount": 1250.00,\n      "items": [\n        {\n          "description": "Consulting services",\n          "quantity": 10,\n          "rate": 125\n        }\n      ]\n    }\n  }\n}`}
+                    />
+                  </div>
+                  <div>
+                    <Badge variant="default" className="mb-1 text-[10px]">
+                      Response
+                    </Badge>
+                    <CodeBlock
+                      code={`{\n  "documentId": "d4e5f6a7-b8c9-0123-def0-123456789012",\n  "status": "processing",\n  "createdAt": "2025-01-15T10:30:00Z"\n}`}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* get_batch_status example */}
+              <div>
+                <h3 className="mb-2 text-xs font-semibold">get_batch_status</h3>
+                <div className="grid gap-3 lg:grid-cols-2">
+                  <div>
+                    <Badge variant="secondary" className="mb-1 text-[10px]">
+                      Request
+                    </Badge>
+                    <CodeBlock
+                      code={`{\n  "name": "get_batch_status",\n  "arguments": {\n    "batchId": "f0e9d8c7-b6a5-4321-fedc-ba9876543210"\n  }\n}`}
+                    />
+                  </div>
+                  <div>
+                    <Badge variant="default" className="mb-1 text-[10px]">
+                      Response
+                    </Badge>
+                    <CodeBlock
+                      code={`{\n  "batchId": "f0e9d8c7-b6a5-4321-fedc-ba9876543210",\n  "status": "completed",\n  "totalDocuments": 3,\n  "completedDocuments": 3,\n  "failedDocuments": 0,\n  "documents": [\n    {\n      "id": "d4e5f6a7-b8c9-0123-def0-123456789012",\n      "status": "completed",\n      "downloadUrl": "https://api.reportflow.app/documents/d4e5f6a7/download"\n    },\n    {\n      "id": "e5f6a7b8-c9d0-1234-ef01-234567890123",\n      "status": "completed",\n      "downloadUrl": "https://api.reportflow.app/documents/e5f6a7b8/download"\n    },\n    {\n      "id": "f6a7b8c9-d0e1-2345-f012-345678901234",\n      "status": "completed",\n      "downloadUrl": "https://api.reportflow.app/documents/f6a7b8c9/download"\n    }\n  ]\n}`}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Installation */}
+          <section className="rounded-xl border border-border bg-surface p-5">
+            <h2 className="text-display text-sm font-semibold">Installation</h2>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Install the MCP server globally or add it to your project. Requires Node.js 18+.
+            </p>
+
+            <div className="mt-4 space-y-4">
+              {/* npm install */}
+              <div>
+                <h3 className="text-xs font-semibold">Install via npm</h3>
+                <div className="mt-2">
+                  <CodeBlock code={`npm install -g @reportflow/mcp-server`} />
+                </div>
+              </div>
+
+              {/* Quick start */}
+              <div>
+                <h3 className="text-xs font-semibold">Quick Start</h3>
+                <p className="mt-1 text-[11px] text-muted-foreground">
+                  Run the server directly to verify your API key works:
+                </p>
+                <div className="mt-2">
+                  <CodeBlock
+                    code={`# Set your API key\nexport REPORTFLOW_API_KEY="rf_...your-api-key"\n\n# Start the MCP server (stdio mode)\nreportflow-mcp`}
+                  />
+                </div>
+              </div>
+
+              {/* Verify connection */}
+              <div>
+                <h3 className="text-xs font-semibold">Verify Connection</h3>
+                <p className="mt-1 text-[11px] text-muted-foreground">
+                  After adding the server config, restart your AI assistant and ask it to list your
+                  Report Flow templates. If it returns your templates, the connection is working.
+                </p>
+                <div className="mt-2">
+                  <CodeBlock
+                    code={`# In your AI assistant, try:\n"List my Report Flow templates"\n\n# Expected: your templates with names and descriptions`}
+                  />
+                </div>
+              </div>
+            </div>
+          </section>
         </TabsContent>
 
         {/* ================================================================ */}
