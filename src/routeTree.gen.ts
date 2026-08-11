@@ -15,6 +15,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedBatchesRouteImport } from './routes/_authenticated.batches'
 import { Route as AuthenticatedDevelopersRouteImport } from './routes/_authenticated.developers'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated.settings'
+import { Route as AuthInviteRouteImport } from './routes/auth.invite'
 import { Route as AuthenticatedTemplatesIndexRouteImport } from './routes/_authenticated.templates.index'
 import { Route as AuthenticatedTemplatesTemplateIdRouteImport } from './routes/_authenticated.templates.$templateId'
 import { Route as ApiV1TemplatesRouteImport } from './routes/api.v1.templates'
@@ -50,6 +51,11 @@ const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthInviteRoute = AuthInviteRouteImport.update({
+  id: '/invite',
+  path: '/invite',
+  getParentRoute: () => AuthRoute,
+} as any)
 const AuthenticatedTemplatesIndexRoute =
   AuthenticatedTemplatesIndexRouteImport.update({
     id: '/templates/',
@@ -81,10 +87,11 @@ const ApiV1DocumentsGenerateRoute = ApiV1DocumentsGenerateRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/auth': typeof AuthRoute
+  '/auth': typeof AuthRouteWithChildren
   '/batches': typeof AuthenticatedBatchesRoute
   '/developers': typeof AuthenticatedDevelopersRoute
   '/settings': typeof AuthenticatedSettingsRoute
+  '/auth/invite': typeof AuthInviteRoute
   '/templates/$templateId': typeof AuthenticatedTemplatesTemplateIdRoute
   '/api/v1/templates': typeof ApiV1TemplatesRoute
   '/templates/': typeof AuthenticatedTemplatesIndexRoute
@@ -93,10 +100,11 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/auth': typeof AuthRoute
+  '/auth': typeof AuthRouteWithChildren
   '/batches': typeof AuthenticatedBatchesRoute
   '/developers': typeof AuthenticatedDevelopersRoute
   '/settings': typeof AuthenticatedSettingsRoute
+  '/auth/invite': typeof AuthInviteRoute
   '/templates/$templateId': typeof AuthenticatedTemplatesTemplateIdRoute
   '/api/v1/templates': typeof ApiV1TemplatesRoute
   '/templates': typeof AuthenticatedTemplatesIndexRoute
@@ -107,10 +115,11 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteWithChildren
-  '/auth': typeof AuthRoute
+  '/auth': typeof AuthRouteWithChildren
   '/_authenticated/batches': typeof AuthenticatedBatchesRoute
   '/_authenticated/developers': typeof AuthenticatedDevelopersRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
+  '/auth/invite': typeof AuthInviteRoute
   '/_authenticated/templates/$templateId': typeof AuthenticatedTemplatesTemplateIdRoute
   '/api/v1/templates': typeof ApiV1TemplatesRoute
   '/_authenticated/templates/': typeof AuthenticatedTemplatesIndexRoute
@@ -125,6 +134,7 @@ export interface FileRouteTypes {
     | '/batches'
     | '/developers'
     | '/settings'
+    | '/auth/invite'
     | '/templates/$templateId'
     | '/api/v1/templates'
     | '/templates/'
@@ -137,6 +147,7 @@ export interface FileRouteTypes {
     | '/batches'
     | '/developers'
     | '/settings'
+    | '/auth/invite'
     | '/templates/$templateId'
     | '/api/v1/templates'
     | '/templates'
@@ -150,6 +161,7 @@ export interface FileRouteTypes {
     | '/_authenticated/batches'
     | '/_authenticated/developers'
     | '/_authenticated/settings'
+    | '/auth/invite'
     | '/_authenticated/templates/$templateId'
     | '/api/v1/templates'
     | '/_authenticated/templates/'
@@ -160,7 +172,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
-  AuthRoute: typeof AuthRoute
+  AuthRoute: typeof AuthRouteWithChildren
   ApiV1TemplatesRoute: typeof ApiV1TemplatesRoute
   ApiV1DocumentsDocumentIdRoute: typeof ApiV1DocumentsDocumentIdRoute
   ApiV1DocumentsGenerateRoute: typeof ApiV1DocumentsGenerateRoute
@@ -209,6 +221,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/settings'
       preLoaderRoute: typeof AuthenticatedSettingsRouteImport
       parentRoute: typeof AuthenticatedRoute
+    }
+    '/auth/invite': {
+      id: '/auth/invite'
+      path: '/invite'
+      fullPath: '/auth/invite'
+      preLoaderRoute: typeof AuthInviteRouteImport
+      parentRoute: typeof AuthRoute
     }
     '/_authenticated/templates/': {
       id: '/_authenticated/templates/'
@@ -268,10 +287,20 @@ const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
   AuthenticatedRouteChildren,
 )
 
+interface AuthRouteChildren {
+  AuthInviteRoute: typeof AuthInviteRoute
+}
+
+const AuthRouteChildren: AuthRouteChildren = {
+  AuthInviteRoute: AuthInviteRoute,
+}
+
+const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
-  AuthRoute: AuthRoute,
+  AuthRoute: AuthRouteWithChildren,
   ApiV1TemplatesRoute: ApiV1TemplatesRoute,
   ApiV1DocumentsDocumentIdRoute: ApiV1DocumentsDocumentIdRoute,
   ApiV1DocumentsGenerateRoute: ApiV1DocumentsGenerateRoute,

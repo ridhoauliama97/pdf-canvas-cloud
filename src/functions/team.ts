@@ -115,8 +115,32 @@ export const inviteMember = createServerFn({ method: "POST" as const })
       throw new Error(`Failed to create invitation: ${error.message}`);
     }
 
-    // In production, send email with invitation link
-    // For now, return the invitation details
+    // Send invitation email
+    const inviteUrl = `${typeof window !== "undefined" ? window.location.origin : "https://reportflow.dev"}/auth/invite?token=${token}`;
+
+    // Get company name and inviter name
+    const { data: company } = await supabaseAdmin
+      .from("companies")
+      .select("name")
+      .eq("id", companyId)
+      .single();
+
+    const { data: inviterProfile } = await supabaseAdmin.auth.admin.getUserById(context.userId);
+
+    const inviterName =
+      ((inviterProfile?.user?.user_metadata as Record<string, unknown>)?.["full_name"] as string) ??
+      "Someone";
+
+    // Import and send email
+    const { sendInvitationEmail } = await import("@/server/email");
+    await sendInvitationEmail({
+      to: data.email,
+      companyName: company?.name ?? "your workspace",
+      invitedByName: inviterName,
+      inviteUrl,
+      role: data.role,
+    });
+
     return {
       invitation,
       invitationLink: `/auth/invite?token=${token}`,
