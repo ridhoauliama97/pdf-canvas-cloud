@@ -91,6 +91,101 @@ export type Database = {
         };
         Relationships: [];
       };
+      batches: {
+        Row: {
+          company_id: string;
+          created_at: string;
+          created_by: string | null;
+          failed_count: number;
+          id: string;
+          name: string | null;
+          processed_count: number;
+          status: string;
+          total_count: number;
+          updated_at: string;
+        };
+        Insert: {
+          company_id: string;
+          created_at?: string;
+          created_by?: string | null;
+          failed_count?: number;
+          id?: string;
+          name?: string | null;
+          processed_count?: number;
+          status?: string;
+          total_count?: number;
+          updated_at?: string;
+        };
+        Update: {
+          company_id?: string;
+          created_at?: string;
+          created_by?: string | null;
+          failed_count?: number;
+          id?: string;
+          name?: string | null;
+          processed_count?: number;
+          status?: string;
+          total_count?: number;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "batches_company_id_fkey";
+            columns: ["company_id"];
+            isOneToOne: false;
+            referencedRelation: "companies";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      batch_items: {
+        Row: {
+          batch_id: string;
+          created_at: string;
+          data: Json;
+          document_id: string | null;
+          error: string | null;
+          id: string;
+          status: string;
+          template_id: string;
+        };
+        Insert: {
+          batch_id: string;
+          created_at?: string;
+          data?: Json;
+          document_id?: string | null;
+          error?: string | null;
+          id?: string;
+          status?: string;
+          template_id: string;
+        };
+        Update: {
+          batch_id?: string;
+          created_at?: string;
+          data?: Json;
+          document_id?: string | null;
+          error?: string | null;
+          id?: string;
+          status?: string;
+          template_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "batch_items_batch_id_fkey";
+            columns: ["batch_id"];
+            isOneToOne: false;
+            referencedRelation: "batches";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "batch_items_template_id_fkey";
+            columns: ["template_id"];
+            isOneToOne: false;
+            referencedRelation: "templates";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       company_members: {
         Row: {
           company_id: string;

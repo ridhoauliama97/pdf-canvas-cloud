@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AuthenticatedBatchesRouteImport } from './routes/_authenticated.batches'
 import { Route as AuthenticatedDevelopersRouteImport } from './routes/_authenticated.developers'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated.settings'
 import { Route as AuthenticatedTemplatesIndexRouteImport } from './routes/_authenticated.templates.index'
@@ -33,6 +34,11 @@ const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedBatchesRoute = AuthenticatedBatchesRouteImport.update({
+  id: '/batches',
+  path: '/batches',
+  getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedDevelopersRoute = AuthenticatedDevelopersRouteImport.update({
   id: '/developers',
@@ -76,6 +82,7 @@ const ApiV1DocumentsGenerateRoute = ApiV1DocumentsGenerateRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/batches': typeof AuthenticatedBatchesRoute
   '/developers': typeof AuthenticatedDevelopersRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/templates/$templateId': typeof AuthenticatedTemplatesTemplateIdRoute
@@ -87,6 +94,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/batches': typeof AuthenticatedBatchesRoute
   '/developers': typeof AuthenticatedDevelopersRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/templates/$templateId': typeof AuthenticatedTemplatesTemplateIdRoute
@@ -100,6 +108,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/auth': typeof AuthRoute
+  '/_authenticated/batches': typeof AuthenticatedBatchesRoute
   '/_authenticated/developers': typeof AuthenticatedDevelopersRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/templates/$templateId': typeof AuthenticatedTemplatesTemplateIdRoute
@@ -113,6 +122,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/batches'
     | '/developers'
     | '/settings'
     | '/templates/$templateId'
@@ -124,6 +134,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/batches'
     | '/developers'
     | '/settings'
     | '/templates/$templateId'
@@ -136,6 +147,7 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/_authenticated/batches'
     | '/_authenticated/developers'
     | '/_authenticated/settings'
     | '/_authenticated/templates/$templateId'
@@ -176,6 +188,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/batches': {
+      id: '/_authenticated/batches'
+      path: '/batches'
+      fullPath: '/batches'
+      preLoaderRoute: typeof AuthenticatedBatchesRouteImport
+      parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/developers': {
       id: '/_authenticated/developers'
@@ -230,6 +249,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteChildren {
+  AuthenticatedBatchesRoute: typeof AuthenticatedBatchesRoute
   AuthenticatedDevelopersRoute: typeof AuthenticatedDevelopersRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedTemplatesTemplateIdRoute: typeof AuthenticatedTemplatesTemplateIdRoute
@@ -237,6 +257,7 @@ interface AuthenticatedRouteChildren {
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedBatchesRoute: AuthenticatedBatchesRoute,
   AuthenticatedDevelopersRoute: AuthenticatedDevelopersRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedTemplatesTemplateIdRoute: AuthenticatedTemplatesTemplateIdRoute,
