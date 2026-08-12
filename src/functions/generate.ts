@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { renderPdf } from "@/server/pdf-render";
+import { logAuditEvent } from "@/server/audit";
 import type { TemplateLayout, PageSetup } from "@/types/template";
 import type { Json } from "@/integrations/supabase/types";
 
@@ -62,7 +63,7 @@ export const generateDocument = createServerFn({ method: "POST" as const })
     // 1. Fetch template and verify it exists and is published
     const { data: template, error: templateError } = await supabaseAdmin
       .from("templates")
-      .select("id, status, current_version_id, company_id")
+      .select("id, name, status, current_version_id, company_id")
       .eq("id", data.templateId)
       .eq("company_id", companyId)
       .single();
@@ -169,6 +170,19 @@ export const generateDocument = createServerFn({ method: "POST" as const })
         `Failed to generate signed URL: ${signedUrlError?.message ?? "Unknown error"}`,
       );
     }
+
+    // 9. Log audit event (fire-and-forget)
+    logAuditEvent({
+      companyId,
+      userId: context!.userId,
+      action: "document.generate",
+      resourceType: "document",
+      resourceId: documentId,
+      details: {
+        template_id: data.templateId,
+        template_name: template.name,
+      },
+    });
 
     return {
       documentId,

@@ -7,6 +7,7 @@ import {
   LayoutTemplate,
   Layers,
   LogOut,
+  ScrollText,
   Terminal,
   Wallet,
 } from "lucide-react";
@@ -22,6 +23,7 @@ const NAV = [
   { to: "/usage", label: "Usage & billing", icon: Wallet, ready: true },
   { to: "/settings", label: "Workspace", icon: Building2, ready: true },
   { to: "/developers", label: "Developers", icon: Terminal, ready: true },
+  { to: "/audit", label: "Audit Log", icon: ScrollText, ready: true },
 ] as const;
 
 export function AppShell({

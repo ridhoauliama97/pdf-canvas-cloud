@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { logAuditEvent } from "@/server/audit";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -126,6 +127,19 @@ export const inviteMember = createServerFn({ method: "POST" as const })
       throw new Error(`Failed to create invitation: ${error.message}`);
     }
 
+    // Log audit event (fire-and-forget)
+    logAuditEvent({
+      companyId,
+      userId: context.userId,
+      action: "member.invite",
+      resourceType: "invitation",
+      resourceId: invitation.id,
+      details: {
+        email: data.email,
+        role: data.role,
+      },
+    });
+
     // Send invitation email
     const inviteUrl = `${typeof window !== "undefined" ? window.location.origin : "https://reportflow.dev"}/invite?token=${token}`;
 
@@ -242,6 +256,18 @@ export const updateMemberRole = createServerFn({ method: "POST" as const })
       throw new Error(`Failed to update member role: ${error.message}`);
     }
 
+    // Log audit event (fire-and-forget)
+    logAuditEvent({
+      companyId,
+      userId: context.userId,
+      action: "member.role_change",
+      resourceType: "member",
+      resourceId: data.userId,
+      details: {
+        new_role: data.role,
+      },
+    });
+
     return { success: true } as const;
   });
 
@@ -275,6 +301,15 @@ export const removeMember = createServerFn({ method: "POST" as const })
     if (error) {
       throw new Error(`Failed to remove member: ${error.message}`);
     }
+
+    // Log audit event (fire-and-forget)
+    logAuditEvent({
+      companyId,
+      userId: context.userId,
+      action: "member.remove",
+      resourceType: "member",
+      resourceId: data.userId,
+    });
 
     return { success: true } as const;
   });

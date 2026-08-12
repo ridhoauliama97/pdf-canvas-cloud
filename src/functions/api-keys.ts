@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { logAuditEvent } from "@/server/audit";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -108,6 +109,20 @@ export const createApiKey = createServerFn({ method: "POST" as const })
       throw new Error(`Failed to create API key: ${error.message}`);
     }
 
+    // Log audit event (fire-and-forget)
+    logAuditEvent({
+      companyId,
+      userId: context.userId,
+      action: "api_key.create",
+      resourceType: "api_key",
+      resourceId: apiKey.id,
+      details: {
+        name: data.name,
+        scopes: data.scopes,
+        key_prefix: apiKey.key_prefix,
+      },
+    });
+
     // Return the full key alongside metadata — shown to the user exactly once.
     return { ...apiKey, key };
   });
@@ -164,6 +179,15 @@ export const revokeApiKey = createServerFn({ method: "POST" as const })
     if (error) {
       throw new Error(`Failed to revoke API key: ${error.message}`);
     }
+
+    // Log audit event (fire-and-forget)
+    logAuditEvent({
+      companyId,
+      userId: context.userId,
+      action: "api_key.revoke",
+      resourceType: "api_key",
+      resourceId: data.keyId,
+    });
 
     return { success: true } as const;
   });

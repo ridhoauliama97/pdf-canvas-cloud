@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { renderPdf } from "@/server/pdf-render";
+import { logAuditEvent } from "@/server/audit";
 import { notifyBatchComplete } from "./webhooks";
 import type { TemplateLayout, PageSetup } from "@/types/template";
 import type { Json } from "@/integrations/supabase/types";
@@ -200,6 +201,19 @@ export const createBatch = createServerFn({ method: "POST" as const })
       throw new Error(`Failed to create batch: ${batchError.message}`);
     }
 
+    // Log audit event for batch creation (fire-and-forget)
+    logAuditEvent({
+      companyId,
+      userId: context.userId,
+      action: "batch.create",
+      resourceType: "batch",
+      resourceId: batchId,
+      details: {
+        name: data.name,
+        item_count: totalCount,
+      },
+    });
+
     // 2. Create batch_items records
     const batchItems = data.items.map((item) => ({
       id: crypto.randomUUID(),
@@ -282,6 +296,20 @@ export const createBatch = createServerFn({ method: "POST" as const })
 
     // Fire webhook notifications — non-blocking, failures are logged and swallowed
     await notifyBatchComplete(batchId, companyId);
+
+    // Log audit event for batch completion (fire-and-forget)
+    logAuditEvent({
+      companyId,
+      userId: context.userId,
+      action: "batch.complete",
+      resourceType: "batch",
+      resourceId: batchId,
+      details: {
+        status: finalStatus,
+        processed_count: processedCount,
+        failed_count: failedCount,
+      },
+    });
 
     return {
       batchId,

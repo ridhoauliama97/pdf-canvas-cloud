@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as InviteRouteImport } from './routes/invite'
+import { Route as AuthenticatedAuditRouteImport } from './routes/_authenticated.audit'
 import { Route as AuthenticatedBatchesRouteImport } from './routes/_authenticated.batches'
 import { Route as AuthenticatedDevelopersRouteImport } from './routes/_authenticated.developers'
 import { Route as AuthenticatedDocumentsRouteImport } from './routes/_authenticated.documents'
@@ -46,6 +47,11 @@ const InviteRoute = InviteRouteImport.update({
   id: '/invite',
   path: '/invite',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedAuditRoute = AuthenticatedAuditRouteImport.update({
+  id: '/audit',
+  path: '/audit',
+  getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedBatchesRoute = AuthenticatedBatchesRouteImport.update({
   id: '/batches',
@@ -125,6 +131,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRouteWithChildren
   '/invite': typeof InviteRoute
+  '/audit': typeof AuthenticatedAuditRoute
   '/batches': typeof AuthenticatedBatchesRoute
   '/developers': typeof AuthenticatedDevelopersRoute
   '/documents': typeof AuthenticatedDocumentsRoute
@@ -144,6 +151,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRouteWithChildren
   '/invite': typeof InviteRoute
+  '/audit': typeof AuthenticatedAuditRoute
   '/batches': typeof AuthenticatedBatchesRoute
   '/developers': typeof AuthenticatedDevelopersRoute
   '/documents': typeof AuthenticatedDocumentsRoute
@@ -165,6 +173,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/auth': typeof AuthRouteWithChildren
   '/invite': typeof InviteRoute
+  '/_authenticated/audit': typeof AuthenticatedAuditRoute
   '/_authenticated/batches': typeof AuthenticatedBatchesRoute
   '/_authenticated/developers': typeof AuthenticatedDevelopersRoute
   '/_authenticated/documents': typeof AuthenticatedDocumentsRoute
@@ -186,6 +195,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/invite'
+    | '/audit'
     | '/batches'
     | '/developers'
     | '/documents'
@@ -205,6 +215,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/invite'
+    | '/audit'
     | '/batches'
     | '/developers'
     | '/documents'
@@ -225,6 +236,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/invite'
+    | '/_authenticated/audit'
     | '/_authenticated/batches'
     | '/_authenticated/developers'
     | '/_authenticated/documents'
@@ -283,6 +295,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/invite'
       preLoaderRoute: typeof InviteRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/audit': {
+      id: '/_authenticated/audit'
+      path: '/audit'
+      fullPath: '/audit'
+      preLoaderRoute: typeof AuthenticatedAuditRouteImport
+      parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/batches': {
       id: '/_authenticated/batches'
@@ -386,6 +405,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteChildren {
+  AuthenticatedAuditRoute: typeof AuthenticatedAuditRoute
   AuthenticatedBatchesRoute: typeof AuthenticatedBatchesRoute
   AuthenticatedDevelopersRoute: typeof AuthenticatedDevelopersRoute
   AuthenticatedDocumentsRoute: typeof AuthenticatedDocumentsRoute
@@ -396,6 +416,7 @@ interface AuthenticatedRouteChildren {
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedAuditRoute: AuthenticatedAuditRoute,
   AuthenticatedBatchesRoute: AuthenticatedBatchesRoute,
   AuthenticatedDevelopersRoute: AuthenticatedDevelopersRoute,
   AuthenticatedDocumentsRoute: AuthenticatedDocumentsRoute,

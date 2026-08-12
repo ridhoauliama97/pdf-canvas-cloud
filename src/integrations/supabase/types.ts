@@ -581,6 +581,50 @@ export type Database = {
           },
         ];
       };
+      audit_log: {
+        Row: {
+          action: string;
+          company_id: string;
+          created_at: string;
+          details: Json;
+          id: string;
+          ip_address: string | null;
+          resource_id: string | null;
+          resource_type: string;
+          user_id: string | null;
+        };
+        Insert: {
+          action: string;
+          company_id: string;
+          created_at?: string;
+          details?: Json;
+          id?: string;
+          ip_address?: string | null;
+          resource_id?: string | null;
+          resource_type: string;
+          user_id?: string | null;
+        };
+        Update: {
+          action?: string;
+          company_id?: string;
+          created_at?: string;
+          details?: Json;
+          id?: string;
+          ip_address?: string | null;
+          resource_id?: string | null;
+          resource_type?: string;
+          user_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "audit_log_company_id_fkey";
+            columns: ["company_id"];
+            isOneToOne: false;
+            referencedRelation: "companies";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       templates: {
         Row: {
           company_id: string;

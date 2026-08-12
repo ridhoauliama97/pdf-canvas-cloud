@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { logAuditEvent } from "@/server/audit";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -175,6 +176,20 @@ export const createOAuthClient = createServerFn({ method: "POST" as const })
       throw new Error(`Failed to create OAuth client: ${error.message}`);
     }
 
+    // Log audit event (fire-and-forget)
+    logAuditEvent({
+      companyId,
+      userId: context.userId,
+      action: "oauth_client.create",
+      resourceType: "oauth_client",
+      resourceId: client.id,
+      details: {
+        name: data.name,
+        client_id: client.client_id,
+        scopes: data.scopes,
+      },
+    });
+
     // Return client metadata alongside the secret — shown to the user exactly once.
     return {
       ...client,
@@ -235,6 +250,15 @@ export const deleteOAuthClient = createServerFn({ method: "POST" as const })
     if (error) {
       throw new Error(`Failed to delete OAuth client: ${error.message}`);
     }
+
+    // Log audit event (fire-and-forget)
+    logAuditEvent({
+      companyId,
+      userId: context.userId,
+      action: "oauth_client.delete",
+      resourceType: "oauth_client",
+      resourceId: data.clientId,
+    });
 
     return { success: true } as const;
   });
