@@ -59,8 +59,8 @@ export const createWebhook = createServerFn({ method: "POST" as const })
     } catch {
       throw new Error("Invalid URL. Please provide a valid webhook endpoint URL.");
     }
-    if (parsed.protocol !== "https:" && parsed.protocol !== "http:") {
-      throw new Error("Webhook URL must use HTTPS or HTTP protocol.");
+    if (parsed.protocol !== "https:") {
+      throw new Error("Webhook URL must use HTTPS protocol for security.");
     }
 
     // Validate events if provided

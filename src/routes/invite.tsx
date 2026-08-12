@@ -35,7 +35,7 @@ function AcceptInvitePage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("invitations")
-        .select("id, email, role, status, expires_at, company_id, companies(name)")
+        .select("id, email, role, status, expires_at, company_id, token, companies(name)")
         .eq("token", token)
         .single();
 
@@ -49,26 +49,11 @@ function AcceptInvitePage() {
   const acceptInvite = useMutation({
     mutationFn: async () => {
       if (!invitation.data) throw new Error("No invitation data");
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
-
-      const { error } = await supabase.from("company_members").insert({
-        company_id: invitation.data.company_id,
-        user_id: user.id,
-        role: invitation.data.role,
-      });
-      if (error) throw error;
-
-      await supabase
-        .from("invitations")
-        .update({ status: "accepted" })
-        .eq("id", invitation.data.id);
-      return invitation.data;
+      const { acceptInvitation } = await import("@/functions/accept-invite");
+      return acceptInvitation({ data: { token: invitation.data.token } });
     },
-    onSuccess: async (data) => {
-      toast.success(`Welcome! You've joined ${data.companies?.name}`);
+    onSuccess: async () => {
+      toast.success("Welcome! You've joined the company");
       await queryClient.invalidateQueries({ queryKey: ["workspaces"] });
       navigate({ to: "/templates" });
     },

@@ -73,12 +73,23 @@ export const inviteMember = createServerFn({ method: "POST" as const })
     const companyId = await requireAdmin(context.userId);
 
     // Check if email is already a member
-    const { data: existingMember } = await supabaseAdmin
-      .from("company_members")
-      .select("id")
-      .eq("company_id", companyId)
-      .limit(1)
-      .maybeSingle();
+    // List users and find by email (supabase auth doesn't have direct email filter)
+    const { data: invitedUsers } = await supabaseAdmin.auth.admin.listUsers();
+
+    const invitedUser = invitedUsers?.users?.find((u) => u.email === data.email);
+
+    if (invitedUser) {
+      const { data: alreadyMember } = await supabaseAdmin
+        .from("company_members")
+        .select("id")
+        .eq("company_id", companyId)
+        .eq("user_id", invitedUser.id)
+        .maybeSingle();
+
+      if (alreadyMember) {
+        throw new Error("This user is already a member of the company");
+      }
+    }
 
     // Check for existing pending invitation
     const { data: existingInvite } = await supabaseAdmin
