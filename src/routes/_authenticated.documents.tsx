@@ -119,19 +119,35 @@ function DocumentHistoryPage() {
           generated_by,
           created_at,
           file_url,
-          templates(name),
-          profiles(full_name)
+          templates(name)
         `,
         )
         .order("created_at", { ascending: false });
       if (error) throw error;
+
+      // Fetch profiles for generated_by values
+      const generatedByIds = [
+        ...new Set((data ?? []).map((d: any) => d.generated_by).filter(Boolean)),
+      ];
+      const profilesMap: Record<string, string> = {};
+
+      if (generatedByIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from("profiles")
+          .select("id, full_name")
+          .in("id", generatedByIds);
+
+        (profiles ?? []).forEach((p: any) => {
+          profilesMap[p.id] = p.full_name;
+        });
+      }
 
       return (data ?? []).map((doc: any) => ({
         id: doc.id,
         template_id: doc.template_id,
         template_name: doc.templates?.name ?? "Unknown Template",
         status: doc.status,
-        generated_by: doc.profiles?.full_name ?? doc.generated_by ?? "System",
+        generated_by: profilesMap[doc.generated_by] ?? doc.generated_by ?? "System",
         created_at: doc.created_at,
         file_url: doc.file_url,
       }));
