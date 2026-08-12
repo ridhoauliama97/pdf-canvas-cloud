@@ -828,10 +828,12 @@ function DevelopersPage() {
             {keysQuery.isLoading ? (
               <div className="mt-4 h-24 animate-pulse rounded-lg bg-surface-2" />
             ) : activeKeys.length === 0 ? (
-              <div className="mt-4 flex flex-col items-center gap-2 rounded-lg border border-dashed border-border py-8 text-center">
-                <KeyRound className="size-8 text-muted-foreground/40" />
-                <p className="text-sm text-muted-foreground">No active API keys</p>
-                <p className="text-xs text-muted-foreground/70">
+              <div className="mt-4 flex flex-col items-center rounded-xl border border-dashed border-border bg-surface/50 px-6 py-12 text-center">
+                <span className="flex size-12 items-center justify-center rounded-xl bg-muted text-muted-foreground">
+                  <KeyRound className="size-6" />
+                </span>
+                <p className="mt-4 text-sm font-medium">No active API keys</p>
+                <p className="mt-1 text-xs text-muted-foreground">
                   Create one to start using the API
                 </p>
               </div>
@@ -1390,10 +1392,12 @@ function DevelopersPage() {
             {webhooksQuery.isLoading ? (
               <div className="mt-4 h-24 animate-pulse rounded-lg bg-surface-2" />
             ) : webhooks.length === 0 ? (
-              <div className="mt-4 flex flex-col items-center gap-2 rounded-lg border border-dashed border-border py-8 text-center">
-                <Webhook className="size-8 text-muted-foreground/40" />
-                <p className="text-sm text-muted-foreground">No webhook endpoints configured</p>
-                <p className="text-xs text-muted-foreground/70">
+              <div className="mt-4 flex flex-col items-center rounded-xl border border-dashed border-border bg-surface/50 px-6 py-12 text-center">
+                <span className="flex size-12 items-center justify-center rounded-xl bg-muted text-muted-foreground">
+                  <Webhook className="size-6" />
+                </span>
+                <p className="mt-4 text-sm font-medium">No webhook endpoints configured</p>
+                <p className="mt-1 text-xs text-muted-foreground">
                   Add a webhook to start receiving event notifications
                 </p>
               </div>

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
+import { ScrollText } from "lucide-react";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/app-shell";
@@ -174,8 +175,8 @@ function AuditLogPage() {
   return (
     <AppShell title="Audit Log" description="View all actions performed in your workspace.">
       {/* Filters */}
-      <div className="mb-6 space-y-3">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+      <div className="mb-6 space-y-4">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
           <Select
             value={actionFilter}
             onValueChange={(v) => {
@@ -222,7 +223,7 @@ function AuditLogPage() {
 
         {(actionFilter !== "all" || startDate || endDate) && (
           <Button
-            variant="ghost"
+            variant="outline"
             size="sm"
             onClick={() => {
               setActionFilter("all");
@@ -243,13 +244,19 @@ function AuditLogPage() {
             <Skeleton className="h-64" />
           </div>
         ) : logs.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 text-center">
-            <p className="text-sm text-muted-foreground">No audit log entries found.</p>
+          <div className="flex flex-col items-center py-16 text-center">
+            <span className="flex size-12 items-center justify-center rounded-xl bg-muted text-muted-foreground">
+              <ScrollText className="size-6" />
+            </span>
+            <h2 className="text-display mt-5 text-lg font-semibold">No audit log entries found</h2>
+            <p className="mt-1.5 max-w-sm text-sm text-muted-foreground">
+              Actions performed in your workspace will appear here.
+            </p>
             {(actionFilter !== "all" || startDate || endDate) && (
               <Button
-                variant="link"
+                variant="outline"
                 size="sm"
-                className="mt-2"
+                className="mt-6"
                 onClick={() => {
                   setActionFilter("all");
                   setStartDate("");
@@ -307,11 +314,11 @@ function AuditLogPage() {
             </div>
 
             {/* Mobile cards */}
-            <div className="divide-y divide-border md:hidden">
+            <div className="space-y-3 md:hidden">
               {logs.map((log) => (
-                <div key={log.id} className="p-4">
+                <div key={log.id} className="rounded-xl border border-border bg-surface p-4">
                   <div className="flex items-start justify-between gap-2">
-                    <Badge variant={actionBadgeVariant(log.action)} className="text-xs">
+                    <Badge variant={actionBadgeVariant(log.action)} className="text-xs shrink-0">
                       {formatAction(log.action)}
                     </Badge>
                     <span className="text-mono text-[10px] text-muted-foreground">

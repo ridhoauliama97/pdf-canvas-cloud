@@ -150,7 +150,7 @@ function NewBatchDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button>
+        <Button size="sm">
           <Plus className="size-4" /> New batch
         </Button>
       </DialogTrigger>
@@ -221,7 +221,7 @@ function BatchesPage() {
     return (
       <AppShell title="Batches">
         <div className="space-y-3">
-          {[0, 1, 2].map((i) => (
+          {[0, 1, 2, 3, 4].map((i) => (
             <Skeleton key={i} className="h-16 rounded-xl" />
           ))}
         </div>
@@ -230,26 +230,28 @@ function BatchesPage() {
   }
 
   return (
-    <AppShell title="Batches">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-sm text-muted-foreground">
-          Generate documents in bulk with async processing.
-        </p>
-        <NewBatchDialog />
-      </div>
-
+    <AppShell
+      title="Batches"
+      description="Generate documents in bulk with async processing."
+      actions={<NewBatchDialog />}
+    >
       {!batches.data || batches.data.length === 0 ? (
-        <div className="py-16 text-center">
-          <FileText className="mx-auto size-10 text-muted-foreground/50" />
-          <p className="mt-4 text-sm text-muted-foreground">No batches yet.</p>
-          <p className="text-xs text-muted-foreground">
+        <div className="flex flex-col items-center rounded-xl border border-dashed border-border bg-surface/50 px-6 py-20 text-center">
+          <span className="flex size-12 items-center justify-center rounded-xl bg-muted text-muted-foreground">
+            <FileText className="size-6" />
+          </span>
+          <h2 className="text-display mt-5 text-lg font-semibold">No batches yet</h2>
+          <p className="mt-1.5 max-w-sm text-sm text-muted-foreground">
             Create a batch to generate multiple documents at once.
           </p>
+          <div className="mt-6">
+            <NewBatchDialog />
+          </div>
         </div>
       ) : (
         <>
           {/* Desktop table */}
-          <div className="mt-4 hidden rounded-xl border border-border md:block">
+          <div className="mt-4 hidden rounded-xl border border-border bg-surface md:block">
             <Table>
               <TableHeader>
                 <TableRow>

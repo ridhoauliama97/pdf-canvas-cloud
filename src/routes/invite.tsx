@@ -73,7 +73,7 @@ function AcceptInvitePage() {
       <div className="flex min-h-screen items-center justify-center bg-background px-4">
         <div className="w-full max-w-sm text-center">
           <XCircle className="mx-auto size-12 text-destructive" />
-          <h1 className="mt-4 text-xl font-semibold">Invalid Invitation</h1>
+          <h1 className="text-display mt-4 text-xl font-semibold">Invalid Invitation</h1>
           <p className="mt-2 text-sm text-muted-foreground">{invitation.error.message}</p>
           <Button className="mt-6" onClick={() => navigate({ to: "/auth" })}>
             Go to Sign In

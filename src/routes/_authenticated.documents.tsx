@@ -334,7 +334,7 @@ function DocumentHistoryPage() {
 
           <div className="flex items-center gap-2">
             <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as StatusFilter)}>
-              <SelectTrigger className="w-[140px]">
+              <SelectTrigger className="w-full sm:w-[160px]">
                 <SelectValue placeholder="All statuses" />
               </SelectTrigger>
               <SelectContent>
@@ -349,7 +349,7 @@ function DocumentHistoryPage() {
             </Select>
 
             <Select value={sourceFilter} onValueChange={(v) => setSourceFilter(v as SourceFilter)}>
-              <SelectTrigger className="w-[140px]">
+              <SelectTrigger className="w-full sm:w-[160px]">
                 <SelectValue placeholder="All sources" />
               </SelectTrigger>
               <SelectContent>
@@ -364,7 +364,7 @@ function DocumentHistoryPage() {
             </Select>
 
             <Select value={templateFilter} onValueChange={setTemplateFilter}>
-              <SelectTrigger className="w-[160px]">
+              <SelectTrigger className="w-full sm:w-[180px]">
                 <SelectValue placeholder="All templates" />
               </SelectTrigger>
               <SelectContent>
@@ -385,7 +385,7 @@ function DocumentHistoryPage() {
               type="date"
               value={dateFrom}
               onChange={(e) => setDateFrom(e.target.value)}
-              className="w-[150px]"
+              className="w-full sm:w-[160px]"
               placeholder="From date"
             />
             <span className="text-sm text-muted-foreground">to</span>
@@ -393,7 +393,7 @@ function DocumentHistoryPage() {
               type="date"
               value={dateTo}
               onChange={(e) => setDateTo(e.target.value)}
-              className="w-[150px]"
+              className="w-full sm:w-[160px]"
               placeholder="To date"
             />
           </div>
@@ -437,7 +437,7 @@ function DocumentHistoryPage() {
       ) : (
         <>
           {/* Desktop table */}
-          <div className="hidden rounded-xl border border-border md:block">
+          <div className="hidden rounded-xl border border-border bg-surface md:block">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -520,6 +520,7 @@ function DocumentHistoryPage() {
                           ? "destructive"
                           : "secondary"
                     }
+                    className="shrink-0"
                   >
                     {doc.status}
                   </Badge>
@@ -597,7 +598,7 @@ function DocumentHistoryPage() {
             </div>
           )}
 
-          <div className="mt-2 text-center text-sm text-muted-foreground">
+          <div className="mt-2 text-center text-xs text-muted-foreground">
             Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1} to{" "}
             {Math.min(currentPage * ITEMS_PER_PAGE, filteredDocuments.length)} of{" "}
             {filteredDocuments.length} documents
