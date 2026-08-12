@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { json } from "@tanstack/react-start";
 import { apiAuthMiddleware } from "@/server/api-auth";
+import { rateLimitMiddleware } from "@/server/rate-limit";
 import { ApiError, jsonError, requireScope, handleListTemplates } from "@/server/api-routes.server";
 
 export const Route = createFileRoute("/api/v1/templates")({
@@ -11,6 +12,15 @@ export const Route = createFileRoute("/api/v1/templates")({
         try {
           if (!context?.authType) {
             return jsonError(401, "UNAUTHORIZED", "API key authentication required");
+          }
+
+          // Rate limit check
+          const rateLimitResponse = rateLimitMiddleware({
+            companyId: context.companyId,
+            plan: "free", // Default plan, can be extended later
+          });
+          if (rateLimitResponse) {
+            return rateLimitResponse;
           }
 
           requireScope(context.scopes, "read");

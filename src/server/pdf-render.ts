@@ -370,56 +370,106 @@ function renderShape(el: CanvasElement, page: PageSetup): React.ReactNode {
   );
 }
 
-/** Render a QR code element (placeholder — actual QR generation needs a library). */
+/** Render a QR code element using qrcode library. */
 function renderQRCode(el: CanvasElement, data: unknown): React.ReactNode {
   const value = el.binding ? String((data as any)[el.binding] ?? "") : el.text || "";
+  if (!value) return null;
 
-  return React.createElement(
-    View,
-    {
-      key: el.id,
-      style: {
-        width: el.w,
-        height: el.h,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        borderWidth: 1,
-        borderColor: "#000000",
+  // Generate QR code as data URL using qrcode library
+  let qrDataUrl: string;
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const QRCode = require("qrcode");
+    // Generate synchronously for PDF rendering
+    qrDataUrl = QRCode.toDataURLSync(value, {
+      width: el.w,
+      margin: 1,
+      color: { dark: el.style.color || "#000000", light: "#ffffff" },
+    });
+  } catch {
+    // Fallback to placeholder if QR generation fails
+    return React.createElement(
+      View,
+      {
+        key: el.id,
+        style: {
+          width: el.w,
+          height: el.h,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          borderWidth: 1,
+          borderColor: "#000000",
+        },
       },
-    },
-    React.createElement(
-      Text,
-      { style: { fontSize: 8, fontFamily: "Courier", textAlign: "center" } },
-      value ? `[QR: ${value}]` : "[QR]",
-    ),
-  );
+      React.createElement(
+        Text,
+        { style: { fontSize: 8, fontFamily: "Courier", textAlign: "center" } },
+        `[QR: ${value}]`,
+      ),
+    );
+  }
+
+  return React.createElement(Image, {
+    key: el.id,
+    src: qrDataUrl,
+    style: { width: el.w, height: el.h },
+  });
 }
 
-/** Render a barcode element (placeholder — actual barcode generation needs a library). */
+/** Render a barcode element using jsbarcode library. */
 function renderBarcode(el: CanvasElement, data: unknown): React.ReactNode {
   const value = el.binding ? String((data as any)[el.binding] ?? "") : el.text || "";
+  if (!value) return null;
 
-  return React.createElement(
-    View,
-    {
-      key: el.id,
-      style: {
-        width: el.w,
-        height: el.h,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        borderWidth: 1,
-        borderColor: "#000000",
+  // Generate barcode as data URL using jsbarcode + canvas
+  let barcodeDataUrl: string;
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const JsBarcode = require("jsbarcode");
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { createCanvas } = require("canvas");
+    const canvas = createCanvas(el.w, el.h);
+    JsBarcode(canvas, value, {
+      format: "CODE128",
+      width: 2,
+      height: el.h - 20,
+      displayValue: true,
+      fontSize: 10,
+      font: "Courier",
+      textMargin: 2,
+      margin: 0,
+    });
+    barcodeDataUrl = canvas.toDataURL("image/png");
+  } catch {
+    // Fallback to placeholder if barcode generation fails
+    return React.createElement(
+      View,
+      {
+        key: el.id,
+        style: {
+          width: el.w,
+          height: el.h,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          borderWidth: 1,
+          borderColor: "#000000",
+        },
       },
-    },
-    React.createElement(
-      Text,
-      { style: { fontSize: 8, fontFamily: "Courier", textAlign: "center" } },
-      value ? `[BAR: ${value}]` : "[BAR]",
-    ),
-  );
+      React.createElement(
+        Text,
+        { style: { fontSize: 8, fontFamily: "Courier", textAlign: "center" } },
+        `[BAR: ${value}]`,
+      ),
+    );
+  }
+
+  return React.createElement(Image, {
+    key: el.id,
+    src: barcodeDataUrl,
+    style: { width: el.w, height: el.h },
+  });
 }
 
 /** Render a page number element (uses render prop for dynamic page info). */

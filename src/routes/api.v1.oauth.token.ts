@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { json } from "@tanstack/react-start";
 import { exchangeToken } from "@/functions/oauth";
+import { checkRateLimit, getPlanConfig } from "@/server/rate-limit";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -58,6 +59,38 @@ export const Route = createFileRoute("/api/v1/oauth/token")({
 
           if (!client_secret || typeof client_secret !== "string") {
             return jsonError(400, "INVALID_REQUEST", "Missing or invalid client_secret");
+          }
+
+          // Rate limit check for OAuth token endpoint
+          // Use client_id as the key (free plan by default for OAuth)
+          const planConfig = getPlanConfig("free");
+          const rateLimitKey = `ratelimit:oauth:${client_id}`;
+          const rateLimitResult = checkRateLimit(
+            rateLimitKey,
+            planConfig.limit,
+            planConfig.windowMs,
+          );
+
+          if (!rateLimitResult.allowed) {
+            const retryAfterSeconds = Math.ceil((rateLimitResult.resetAt - Date.now()) / 1000);
+            return new Response(
+              JSON.stringify({
+                error: {
+                  code: "RATE_LIMITED",
+                  message: `Rate limit exceeded. Try again in ${retryAfterSeconds} seconds.`,
+                },
+              }),
+              {
+                status: 429,
+                headers: {
+                  "Content-Type": "application/json",
+                  "Retry-After": String(retryAfterSeconds),
+                  "X-RateLimit-Limit": String(rateLimitResult.limit),
+                  "X-RateLimit-Remaining": "0",
+                  "X-RateLimit-Reset": String(Math.ceil(rateLimitResult.resetAt / 1000)),
+                },
+              },
+            );
           }
 
           // Exchange token
