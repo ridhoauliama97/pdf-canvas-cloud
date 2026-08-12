@@ -54,6 +54,7 @@ interface DocumentRow {
   template_id: string;
   template_name: string;
   status: string;
+  source: "editor" | "api" | "batch";
   generated_by: string | null;
   created_at: string;
   file_url: string | null;
@@ -64,8 +65,10 @@ interface TemplateOption {
   name: string;
 }
 
-const STATUS_OPTIONS = ["all", "completed", "pending", "failed"] as const;
+const STATUS_OPTIONS = ["all", "completed", "generating", "failed"] as const;
+const SOURCE_OPTIONS = ["all", "editor", "api", "batch"] as const;
 type StatusFilter = (typeof STATUS_OPTIONS)[number];
+type SourceFilter = (typeof SOURCE_OPTIONS)[number];
 
 const ITEMS_PER_PAGE = 10;
 
@@ -82,6 +85,7 @@ function DocumentHistoryPage() {
   const { workspace, isLoading: workspaceLoading } = useWorkspace();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const [sourceFilter, setSourceFilter] = useState<SourceFilter>("all");
   const [templateFilter, setTemplateFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [dateFrom, setDateFrom] = useState("");
@@ -142,15 +146,40 @@ function DocumentHistoryPage() {
         });
       }
 
-      return (data ?? []).map((doc: any) => ({
-        id: doc.id,
-        template_id: doc.template_id,
-        template_name: doc.templates?.name ?? "Unknown Template",
-        status: doc.status,
-        generated_by: profilesMap[doc.generated_by] ?? doc.generated_by ?? "System",
-        created_at: doc.created_at,
-        file_url: doc.file_url,
-      }));
+      // Detect source for each document
+      const docIds = (data ?? []).map((d: any) => d.id);
+      const batchDocIds = new Set<string>();
+
+      if (docIds.length > 0) {
+        const { data: batchItems } = await supabase
+          .from("batch_items")
+          .select("document_id")
+          .in("document_id", docIds);
+
+        (batchItems ?? []).forEach((bi: any) => batchDocIds.add(bi.document_id));
+      }
+
+      return (data ?? []).map((doc: any) => {
+        let source: "editor" | "api" | "batch" = "editor";
+        if (batchDocIds.has(doc.id)) {
+          source = "batch";
+        } else if (doc.generated_by) {
+          // Check if generated_by is an API key (starts with rf_)
+          // For now, if generated_by exists and is not in profiles, it's likely an API key
+          source = profilesMap[doc.generated_by] ? "editor" : "api";
+        }
+
+        return {
+          id: doc.id,
+          template_id: doc.template_id,
+          template_name: doc.templates?.name ?? "Unknown Template",
+          status: doc.status,
+          source,
+          generated_by: profilesMap[doc.generated_by] ?? doc.generated_by ?? "System",
+          created_at: doc.created_at,
+          file_url: doc.file_url,
+        };
+      });
     },
   });
 
@@ -169,6 +198,10 @@ function DocumentHistoryPage() {
       if (statusFilter !== "all" && doc.status !== statusFilter) {
         return false;
       }
+      // Source filter
+      if (sourceFilter !== "all" && doc.source !== sourceFilter) {
+        return false;
+      }
       // Template filter
       if (templateFilter !== "all" && doc.template_id !== templateFilter) {
         return false;
@@ -182,7 +215,15 @@ function DocumentHistoryPage() {
       }
       return true;
     });
-  }, [documents.data, debouncedSearch, statusFilter, templateFilter, dateFrom, dateTo]);
+  }, [
+    documents.data,
+    debouncedSearch,
+    statusFilter,
+    sourceFilter,
+    templateFilter,
+    dateFrom,
+    dateTo,
+  ]);
 
   // Pagination
   const totalPages = Math.ceil(filteredDocuments.length / ITEMS_PER_PAGE);
@@ -199,13 +240,19 @@ function DocumentHistoryPage() {
   const clearFilters = useCallback(() => {
     setSearch("");
     setStatusFilter("all");
+    setSourceFilter("all");
     setTemplateFilter("all");
     setDateFrom("");
     setDateTo("");
   }, []);
 
   const hasActiveFilters =
-    debouncedSearch || statusFilter !== "all" || templateFilter !== "all" || dateFrom || dateTo;
+    debouncedSearch ||
+    statusFilter !== "all" ||
+    sourceFilter !== "all" ||
+    templateFilter !== "all" ||
+    dateFrom ||
+    dateTo;
 
   const handleDownload = async (doc: DocumentRow) => {
     if (!doc.file_url) return;
@@ -298,6 +345,21 @@ function DocumentHistoryPage() {
               </SelectContent>
             </Select>
 
+            <Select value={sourceFilter} onValueChange={(v) => setSourceFilter(v as SourceFilter)}>
+              <SelectTrigger className="w-[140px]">
+                <SelectValue placeholder="All sources" />
+              </SelectTrigger>
+              <SelectContent>
+                {SOURCE_OPTIONS.map((source) => (
+                  <SelectItem key={source} value={source}>
+                    {source === "all"
+                      ? "All sources"
+                      : source.charAt(0).toUpperCase() + source.slice(1)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
             <Select value={templateFilter} onValueChange={setTemplateFilter}>
               <SelectTrigger className="w-[160px]">
                 <SelectValue placeholder="All templates" />
@@ -377,6 +439,7 @@ function DocumentHistoryPage() {
                 <TableRow>
                   <TableHead>Template</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead>Source</TableHead>
                   <TableHead>Generated By</TableHead>
                   <TableHead>Date</TableHead>
                   <TableHead className="w-[100px]">Actions</TableHead>
@@ -397,6 +460,11 @@ function DocumentHistoryPage() {
                         }
                       >
                         {doc.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className="text-xs">
+                        {doc.source}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-muted-foreground">
