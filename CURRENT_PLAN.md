@@ -2,23 +2,27 @@
 
 > File ini adalah rencana terbaru berdasarkan progress terakhir.
 > Diperbarui setiap selesai phase atau ada perubahan signifikan.
-> Terakhir diperbarui: 2026-08-11
+> Terakhir diperbarui: 2026-08-12
 
 ---
 
 ## Progress Summary
 
-| Phase | Status     | Subtasks |
-| ----- | ---------- | -------- |
-| 1-5   | ✅ Selesai | 26/26    |
-| 6     | ⏳ Belum   | 0/3      |
-| 7     | ⏳ Belum   | 0/5      |
-| 8     | ⏳ Belum   | 0/4      |
-| 9     | ⏳ Belum   | 0/4      |
-| 10    | ⏳ Belum   | 0/3      |
-| 11    | ⏳ Belum   | 0/4      |
+| Phase | Nama                      | Status | Subtasks |
+| ----- | ------------------------- | ------ | -------- |
+| 1     | PDF Generation            | ✅     | 5/5      |
+| 2     | API Key Auth              | ✅     | 5/5      |
+| 3     | Editor Improvements       | ✅     | 8/8      |
+| 4     | Batch Generation          | ✅     | 5/5      |
+| 5     | Webhooks                  | ✅     | 3/3      |
+| 6     | MCP Server                | ✅     | 3/3      |
+| 7     | Team Management           | ✅     | 7/7      |
+| 8     | OAuth 2.0                 | ✅     | 4/4      |
+| 9     | Document History + Usage  | ✅     | 3/3      |
+| 10    | Rate Limiting + Audit Log | ⏳     | 0/3      |
+| 11    | Polish                    | ⏳     | 0/4      |
 
-**Total: 26/44 subtasks selesai (66%)**
+**Total: 43/49 subtasks selesai (88%)**
 
 ---
 
@@ -54,7 +58,7 @@
 
 - API key format: `rf_` + 48 random chars (crypto.getRandomValues)
 - Hanya admin yang bisa buat API key (role check di server function)
-- Scapes valid: `read`, `generate`
+- Scopes valid: `read`, `generate`
 
 ---
 
@@ -103,18 +107,19 @@
 - HMAC-SHA256 signing dengan `whsec_` secret
 - Retry 3x exponential backoff (1s → 4s → 16s)
 - Auto-notify saat batch completion
+- Webhook URL harus HTTPS (HTTP ditolak)
 
 ---
 
-## Phase 6: MCP Server ⏳
+## Phase 6: MCP Server ✅
 
 | Subtask                                            | Status |
 | -------------------------------------------------- | ------ |
-| Set up MCP server (`@modelcontextprotocol/sdk`)    | ⏳     |
-| Implement 4 MCP tools                              | ⏳     |
-| Build MCP developer guide page (`/developers/mcp`) | ⏳     |
+| Set up MCP server (`@modelcontextprotocol/sdk`)    | ✅     |
+| Implement 4 MCP tools                              | ✅     |
+| Build MCP developer guide page (`/developers/mcp`) | ✅     |
 
-**Tools to implement:**
+**Tools:**
 
 1. `list_templates` — return available templates + variable schemas
 2. `get_template_schema` — return JSON schema untuk 1 template
@@ -123,52 +128,71 @@
 
 ---
 
-## Phase 7: Team Management ⏳
+## Phase 7: Team Management ✅
 
-| Subtask                                              | Status            |
-| ---------------------------------------------------- | ----------------- |
-| Create invitations table migration                   | ✅ (sudah dibuat) |
-| Build invitation server functions                    | ⏳                |
-| Build team management UI (invite, role edit, remove) | ⏳                |
-| Build workspace settings editing                     | ⏳                |
-| Build profile management                             | ⏳                |
-
----
-
-## Phase 8: OAuth 2.0 ⏳
-
-| Subtask                                      | Status |
-| -------------------------------------------- | ------ |
-| Client Credentials grant (server-to-server)  | ⏳     |
-| Authorization Code + PKCE (third-party apps) | ⏳     |
-| Token introspection/revocation endpoints     | ⏳     |
-| OAuth client management UI                   | ⏳     |
+| Subtask                                              | Status |
+| ---------------------------------------------------- | ------ |
+| Create invitations table migration                   | ✅     |
+| Build invitation server functions                    | ✅     |
+| Build team management UI (invite, role edit, remove) | ✅     |
+| Build workspace settings editing                     | ✅     |
+| Build profile management (dengan crop/rotate)        | ✅     |
+| Build accept invitation page (`/invite`)             | ✅     |
+| Send invitation email (Resend)                       | ✅     |
 
 **Notes:**
 
-- Google OAuth sudah jalan (login only)
-- Perlu tambah: client credentials, PKCE, token management
+- Accept invitation pakai server function (bypass RLS)
+- Email ownership verification mencegah unauthorized acceptance
+- Crop/rotate profile photo pakai react-easy-crop
 
 ---
 
-## Phase 9: Document History + Usage ⏳
+## Phase 8: OAuth 2.0 ✅
 
-| Subtask                                             | Status |
-| --------------------------------------------------- | ------ |
-| Document history page (`/documents`)                | ⏳     |
-| Usage & billing page                                | ⏳     |
-| Usage tracking (documents_generated, storage_bytes) | ⏳     |
-| Plan limits enforcement                             | ⏳     |
+| Subtask                                    | Status |
+| ------------------------------------------ | ------ |
+| Client Credentials grant                   | ✅     |
+| Token introspection/revocation endpoints   | ✅     |
+| OAuth client management (server functions) | ✅     |
+| Create oauth_clients + oauth_tokens tables | ✅     |
+
+**Endpoints:**
+
+- `POST /api/v1/oauth/token` — exchange credentials for access token
+- `POST /api/v1/oauth/introspect` — validate token
+
+**Notes:**
+
+- Google OAuth sudah jalan untuk login (dari Supabase Auth)
+- Client Credentials untuk server-to-server
+- SHA-256 hashing untuk secrets dan tokens
+
+---
+
+## Phase 9: Document History + Usage ✅
+
+| Subtask                              | Status |
+| ------------------------------------ | ------ |
+| Document history page (`/documents`) | ✅     |
+| Usage & billing page (`/usage`)      | ✅     |
+| Create usage_counters table          | ✅     |
+
+**Notes:**
+
+- Document History filters: status (completed/generating/failed), source (editor/api/batch), template, date range
+- Source detection: editor (generated_by=NULL), api (generated_by≠profile), batch (exists in batch_items)
+- Usage page menampilkan charts dan plan limits
 
 ---
 
 ## Phase 10: Rate Limiting + Audit Log ⏳
 
-| Subtask                          | Status |
-| -------------------------------- | ------ |
-| Rate limiting per workspace/plan | ⏳     |
-| Audit log table + tracking       | ⏳     |
-| Webhook delivery log             | ⏳     |
+| Subtask                                                    | Status |
+| ---------------------------------------------------------- | ------ |
+| Rate limiting per workspace/plan                           | ⏳     |
+| Audit log table + tracking                                 | ⏳     |
+| Document history: record ALL attempts (completed + failed) | ⏳     |
 
 ---
 
@@ -183,10 +207,24 @@
 
 ---
 
+## Known Issues
+
+| Issue                                                                         | Severity  | Status       |
+| ----------------------------------------------------------------------------- | --------- | ------------ |
+| Document History: failed batch items tidak muncul (tidak ada document record) | 🟠 MEDIUM | ⏳ Perlu fix |
+| Custom fonts belum di-register (pakai built-in)                               | 🟡 LOW    | ⏳ Deferred  |
+| Batch processing synchronus (timeout risk)                                    | 🟡 LOW    | ⏳ Deferred  |
+
+---
+
 ## Bug Fixes Log
 
 | Date       | Issue                                  | Severity    | Status                       |
 | ---------- | -------------------------------------- | ----------- | ---------------------------- |
+| 2026-08-12 | Invitation acceptance blocked by RLS   | 🔴 CRITICAL | ✅ Fixed                     |
+| 2026-08-12 | Broken duplicate-member check          | 🔴 CRITICAL | ✅ Fixed                     |
+| 2026-08-12 | No email ownership verification        | 🔴 CRITICAL | ✅ Fixed                     |
+| 2026-08-12 | HTTP webhook URLs allowed              | 🟠 HIGH     | ✅ Fixed                     |
 | 2026-08-11 | Documents RLS pakai `public` role      | 🔴 CRITICAL | ✅ Fixed                     |
 | 2026-08-11 | Batch data lookup salah                | 🔴 CRITICAL | ✅ Fixed                     |
 | 2026-08-11 | API key creation privilege escalation  | 🟠 HIGH     | ✅ Fixed                     |
@@ -208,12 +246,15 @@
 | company_members   | ✅  | 1    | Role-based membership     |
 | templates         | ✅  | 2    | Document templates        |
 | template_versions | ✅  | 4    | Versioned layouts         |
-| documents         | ✅  | 10   | Generated PDFs            |
+| documents         | ✅  | 12   | Generated PDFs            |
 | api_keys          | ✅  | 1    | SHA-256 hashed            |
 | batches           | ✅  | 7    | Async generation jobs     |
 | batch_items       | ✅  | 32   | Individual document jobs  |
-| webhooks          | ✅  | 2    | HMAC-signed notifications |
-| invitations       | ✅  | 0    | Team invitations          |
+| webhooks          | ✅  | 1    | HMAC-signed notifications |
+| invitations       | ✅  | 1    | Team invitations          |
+| oauth_clients     | ✅  | 0    | OAuth client credentials  |
+| oauth_tokens      | ✅  | 0    | OAuth access tokens       |
+| usage_counters    | ✅  | 0    | Usage tracking            |
 
 ---
 
@@ -226,10 +267,19 @@
 | `src/functions/batches.ts`                 | Batch processing              |
 | `src/functions/webhooks.ts`                | Webhook delivery              |
 | `src/functions/api-keys.ts`                | API key management            |
+| `src/functions/team.ts`                    | Team management               |
+| `src/functions/oauth.ts`                   | OAuth 2.0                     |
+| `src/functions/accept-invite.ts`           | Invitation acceptance         |
 | `src/server/api-auth.ts`                   | API authentication middleware |
-| `src/server/api-routes.server.ts`          | REST API handlers             |
+| `src/server/email.ts`                      | Email service (Resend)        |
+| `src/server/mcp-server.ts`                 | MCP server                    |
+| `src/routes/api.v1.*.ts`                   | REST API endpoints            |
 | `src/routes/_authenticated.developers.tsx` | Developer portal              |
 | `src/routes/_authenticated.batches.tsx`    | Batch management UI           |
+| `src/routes/_authenticated.documents.tsx`  | Document history              |
+| `src/routes/_authenticated.usage.tsx`      | Usage tracking                |
+| `src/routes/_authenticated.settings.tsx`   | Team & workspace settings     |
+| `src/routes/invite.tsx`                    | Accept invitation             |
 
 ---
 
@@ -241,4 +291,5 @@ Setelah menyelesaikan phase atau fix bug penting:
 2. Update subtask status di phase yang sesuai
 3. Tambah entry di Bug Fixes Log
 4. Update Database Schema jika ada table baru
-5. Update Last Updated date di atas
+5. Update Known Issues
+6. Update Last Updated date di atas
