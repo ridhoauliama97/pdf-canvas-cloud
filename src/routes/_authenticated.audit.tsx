@@ -174,47 +174,51 @@ function AuditLogPage() {
   return (
     <AppShell title="Audit Log" description="View all actions performed in your workspace.">
       {/* Filters */}
-      <div className="mb-6 flex flex-wrap gap-3">
-        <Select
-          value={actionFilter}
-          onValueChange={(v) => {
-            setActionFilter(v as ActionFilter);
-            setPage(1);
-          }}
-        >
-          <SelectTrigger className="w-[200px]">
-            <SelectValue placeholder="Filter by action" />
-          </SelectTrigger>
-          <SelectContent>
-            {ACTION_OPTIONS.map((opt) => (
-              <SelectItem key={opt} value={opt}>
-                {opt === "all" ? "All actions" : formatAction(opt)}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+      <div className="mb-6 space-y-3">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <Select
+            value={actionFilter}
+            onValueChange={(v) => {
+              setActionFilter(v as ActionFilter);
+              setPage(1);
+            }}
+          >
+            <SelectTrigger className="w-full sm:w-[200px]">
+              <SelectValue placeholder="Filter by action" />
+            </SelectTrigger>
+            <SelectContent>
+              {ACTION_OPTIONS.map((opt) => (
+                <SelectItem key={opt} value={opt}>
+                  {opt === "all" ? "All actions" : formatAction(opt)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
-        <Input
-          type="date"
-          placeholder="Start date"
-          value={startDate}
-          onChange={(e) => {
-            setStartDate(e.target.value);
-            setPage(1);
-          }}
-          className="w-[160px]"
-        />
+          <div className="flex items-center gap-2">
+            <Input
+              type="date"
+              placeholder="Start date"
+              value={startDate}
+              onChange={(e) => {
+                setStartDate(e.target.value);
+                setPage(1);
+              }}
+              className="w-full sm:w-[160px]"
+            />
 
-        <Input
-          type="date"
-          placeholder="End date"
-          value={endDate}
-          onChange={(e) => {
-            setEndDate(e.target.value);
-            setPage(1);
-          }}
-          className="w-[160px]"
-        />
+            <Input
+              type="date"
+              placeholder="End date"
+              value={endDate}
+              onChange={(e) => {
+                setEndDate(e.target.value);
+                setPage(1);
+              }}
+              className="w-full sm:w-[160px]"
+            />
+          </div>
+        </div>
 
         {(actionFilter !== "all" || startDate || endDate) && (
           <Button
@@ -258,45 +262,80 @@ function AuditLogPage() {
             )}
           </div>
         ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[180px]">Timestamp</TableHead>
-                <TableHead className="w-[140px]">Action</TableHead>
-                <TableHead className="w-[120px]">Resource</TableHead>
-                <TableHead className="w-[120px]">User ID</TableHead>
-                <TableHead>Details</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
+          <>
+            {/* Desktop table */}
+            <div className="hidden md:block">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-[180px]">Timestamp</TableHead>
+                    <TableHead className="w-[140px]">Action</TableHead>
+                    <TableHead className="w-[120px]">Resource</TableHead>
+                    <TableHead className="w-[120px]">User ID</TableHead>
+                    <TableHead>Details</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {logs.map((log) => (
+                    <TableRow key={log.id}>
+                      <TableCell className="text-mono text-xs">
+                        {new Date(log.created_at).toLocaleString()}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={actionBadgeVariant(log.action)} className="text-xs">
+                          {formatAction(log.action)}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-xs text-muted-foreground">
+                        {log.resource_type}
+                        {log.resource_id && (
+                          <span className="text-mono ml-1 text-[10px]">
+                            {log.resource_id.slice(0, 8)}…
+                          </span>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-mono text-[11px] text-muted-foreground">
+                        {log.user_id ? `${log.user_id.slice(0, 8)}…` : "—"}
+                      </TableCell>
+                      <TableCell className="max-w-[300px] truncate text-xs text-muted-foreground">
+                        {formatDetails(log.details)}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+
+            {/* Mobile cards */}
+            <div className="divide-y divide-border md:hidden">
               {logs.map((log) => (
-                <TableRow key={log.id}>
-                  <TableCell className="text-mono text-xs">
-                    {new Date(log.created_at).toLocaleString()}
-                  </TableCell>
-                  <TableCell>
+                <div key={log.id} className="p-4">
+                  <div className="flex items-start justify-between gap-2">
                     <Badge variant={actionBadgeVariant(log.action)} className="text-xs">
                       {formatAction(log.action)}
                     </Badge>
-                  </TableCell>
-                  <TableCell className="text-xs text-muted-foreground">
-                    {log.resource_type}
+                    <span className="text-mono text-[10px] text-muted-foreground">
+                      {new Date(log.created_at).toLocaleString()}
+                    </span>
+                  </div>
+                  <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                    <span>{log.resource_type}</span>
                     {log.resource_id && (
-                      <span className="text-mono ml-1 text-[10px]">
-                        {log.resource_id.slice(0, 8)}…
+                      <span className="text-mono text-[10px]">{log.resource_id.slice(0, 8)}…</span>
+                    )}
+                    {log.user_id && (
+                      <span className="text-mono text-[10px]">
+                        User: {log.user_id.slice(0, 8)}…
                       </span>
                     )}
-                  </TableCell>
-                  <TableCell className="text-mono text-[11px] text-muted-foreground">
-                    {log.user_id ? `${log.user_id.slice(0, 8)}…` : "—"}
-                  </TableCell>
-                  <TableCell className="max-w-[300px] truncate text-xs text-muted-foreground">
+                  </div>
+                  <p className="mt-1 max-w-full truncate text-xs text-muted-foreground">
                     {formatDetails(log.details)}
-                  </TableCell>
-                </TableRow>
+                  </p>
+                </div>
               ))}
-            </TableBody>
-          </Table>
+            </div>
+          </>
         )}
       </div>
 

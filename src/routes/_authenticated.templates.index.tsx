@@ -1,11 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { FileText, Loader2, Plus, Search, Sparkles, X } from "lucide-react";
+import { Download, FileText, Loader2, Plus, Search, Sparkles, Upload, X } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useWorkspace } from "@/hooks/use-workspace";
 import { STARTERS, getStarter } from "@/lib/starter-templates";
+import { exportTemplate, downloadTemplateJson, importTemplate } from "@/lib/template-io";
+import type { TemplateExportData } from "@/lib/template-io";
 import { AppShell } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -315,6 +317,81 @@ function FilterBar({
   );
 }
 
+function ImportTemplateDialog({ companyId }: { companyId: string }) {
+  const [open, setOpen] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
+  const handleImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setImporting(true);
+    try {
+      const text = await file.text();
+      const data = JSON.parse(text) as TemplateExportData;
+      const templateId = await importTemplate(data, companyId);
+      await queryClient.invalidateQueries({ queryKey: ["templates"] });
+      toast.success(`Template "${data.name}" imported successfully`);
+      setOpen(false);
+      navigate({ to: "/templates/$templateId", params: { templateId } });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to import template";
+      toast.error(message);
+    } finally {
+      setImporting(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="outline">
+          <Upload className="size-4" /> Import
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Import template</DialogTitle>
+          <DialogDescription>
+            Upload a JSON file exported from Report Flow to create a new template.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4">
+          <div
+            className="flex flex-col items-center rounded-xl border-2 border-dashed border-border bg-surface/50 px-6 py-10 text-center"
+            onClick={() => fileInputRef.current?.click()}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") fileInputRef.current?.click();
+            }}
+          >
+            <Upload className="size-8 text-muted-foreground" />
+            <p className="mt-3 text-sm font-medium">
+              {importing ? "Importing..." : "Click to select a JSON file"}
+            </p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Accepts .json files exported from Report Flow
+            </p>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".json,application/json"
+              className="hidden"
+              onChange={handleImport}
+              disabled={importing}
+            />
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 function TemplatesPage() {
   const { workspace, isLoading, canEdit } = useWorkspace();
 
@@ -406,7 +483,14 @@ function TemplatesPage() {
     <AppShell
       title="Templates"
       description="Design once, then render from the API. Published versions are the ones the API uses."
-      actions={canEdit ? <NewTemplateDialog companyId={workspace.id} /> : undefined}
+      actions={
+        canEdit ? (
+          <div className="flex gap-2">
+            <ImportTemplateDialog companyId={workspace.id} />
+            <NewTemplateDialog companyId={workspace.id} />
+          </div>
+        ) : undefined
+      }
     >
       {templates.isLoading ? (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
@@ -461,16 +545,18 @@ function TemplatesPage() {
           ) : (
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
               {filteredTemplates.map((template) => (
-                <Link
+                <div
                   key={template.id}
-                  to="/templates/$templateId"
-                  params={{ templateId: template.id }}
                   className="group flex flex-col rounded-xl border border-border bg-surface p-5 transition-colors hover:border-primary/60"
                 >
                   <div className="flex items-start justify-between gap-3">
-                    <h2 className="text-[15px] leading-snug font-semibold group-hover:text-primary">
+                    <Link
+                      to="/templates/$templateId"
+                      params={{ templateId: template.id }}
+                      className="text-[15px] leading-snug font-semibold group-hover:text-primary"
+                    >
                       {template.name}
-                    </h2>
+                    </Link>
                     <Badge variant={template.status === "published" ? "default" : "secondary"}>
                       {template.status}
                     </Badge>
@@ -482,8 +568,26 @@ function TemplatesPage() {
                     <span>{template.page_format}</span>
                     <span>·</span>
                     <span>{(template.doc_type ?? "document").replace("_", " ")}</span>
+                    <button
+                      type="button"
+                      className="ml-auto inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-[11px] text-muted-foreground transition-colors hover:border-primary hover:text-primary"
+                      onClick={async (e) => {
+                        e.preventDefault();
+                        try {
+                          const data = await exportTemplate(template.id);
+                          downloadTemplateJson(data);
+                          toast.success("Template exported");
+                        } catch (err) {
+                          const message = err instanceof Error ? err.message : "Export failed";
+                          toast.error(message);
+                        }
+                      }}
+                    >
+                      <Download className="size-3" />
+                      Export
+                    </button>
                   </div>
-                </Link>
+                </div>
               ))}
             </div>
           )}

@@ -436,7 +436,8 @@ function DocumentHistoryPage() {
         </div>
       ) : (
         <>
-          <div className="rounded-xl border border-border">
+          {/* Desktop table */}
+          <div className="hidden rounded-xl border border-border md:block">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -503,6 +504,50 @@ function DocumentHistoryPage() {
                 ))}
               </TableBody>
             </Table>
+          </div>
+
+          {/* Mobile cards */}
+          <div className="space-y-3 md:hidden">
+            {paginatedDocuments.map((doc) => (
+              <div key={doc.id} className="rounded-xl border border-border bg-surface p-4">
+                <div className="flex items-start justify-between gap-2">
+                  <p className="text-sm font-medium">{doc.template_name}</p>
+                  <Badge
+                    variant={
+                      doc.status === "completed"
+                        ? "default"
+                        : doc.status === "failed"
+                          ? "destructive"
+                          : "secondary"
+                    }
+                  >
+                    {doc.status}
+                  </Badge>
+                </div>
+                {doc.status === "failed" && doc.error && (
+                  <p className="mt-1 text-xs text-destructive truncate" title={doc.error}>
+                    {doc.error}
+                  </p>
+                )}
+                <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                  <Badge variant="outline">{doc.source}</Badge>
+                  <span>{doc.generated_by ?? "System"}</span>
+                  <span>·</span>
+                  <span>{new Date(doc.created_at).toLocaleDateString()}</span>
+                </div>
+                {doc.status === "completed" && doc.file_url && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleDownload(doc)}
+                    className="mt-3 w-full gap-2"
+                  >
+                    <Download className="size-4" />
+                    Download
+                  </Button>
+                )}
+              </div>
+            ))}
           </div>
 
           {/* Pagination */}

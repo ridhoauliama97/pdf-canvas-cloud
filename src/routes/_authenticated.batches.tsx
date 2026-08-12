@@ -231,7 +231,7 @@ function BatchesPage() {
 
   return (
     <AppShell title="Batches">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm text-muted-foreground">
           Generate documents in bulk with async processing.
         </p>
@@ -247,49 +247,85 @@ function BatchesPage() {
           </p>
         </div>
       ) : (
-        <div className="mt-4 rounded-xl border border-border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="w-[200px]">Progress</TableHead>
-                <TableHead>Created</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {batches.data.map((batch: any) => {
-                const config = STATUS_CONFIG[batch["status"]] ?? STATUS_CONFIG["queued"];
-                const progress =
-                  batch.total_count > 0
-                    ? Math.round((batch.processed_count / batch.total_count) * 100)
-                    : 0;
+        <>
+          {/* Desktop table */}
+          <div className="mt-4 hidden rounded-xl border border-border md:block">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="w-[200px]">Progress</TableHead>
+                  <TableHead>Created</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {batches.data.map((batch: any) => {
+                  const config = STATUS_CONFIG[batch["status"]] ?? STATUS_CONFIG["queued"];
+                  const progress =
+                    batch.total_count > 0
+                      ? Math.round((batch.processed_count / batch.total_count) * 100)
+                      : 0;
 
-                return (
-                  <TableRow key={batch.id}>
-                    <TableCell className="font-medium">{batch.name || "Unnamed batch"}</TableCell>
-                    <TableCell>
-                      <Badge variant={config?.variant ?? "secondary"} className="gap-1">
-                        {config?.icon} {config?.label}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Progress value={progress} className="h-2 flex-1" />
-                        <span className="text-xs text-muted-foreground whitespace-nowrap">
-                          {batch.processed_count}/{batch.total_count}
-                        </span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-xs text-muted-foreground">
-                      {new Date(batch.created_at).toLocaleString()}
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </div>
+                  return (
+                    <TableRow key={batch.id}>
+                      <TableCell className="font-medium">{batch.name || "Unnamed batch"}</TableCell>
+                      <TableCell>
+                        <Badge variant={config?.variant ?? "secondary"} className="gap-1">
+                          {config?.icon} {config?.label}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Progress value={progress} className="h-2 flex-1" />
+                          <span className="text-xs text-muted-foreground whitespace-nowrap">
+                            {batch.processed_count}/{batch.total_count}
+                          </span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-xs text-muted-foreground">
+                        {new Date(batch.created_at).toLocaleString()}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </div>
+
+          {/* Mobile cards */}
+          <div className="mt-4 space-y-3 md:hidden">
+            {batches.data.map((batch: any) => {
+              const config = STATUS_CONFIG[batch["status"]] ?? STATUS_CONFIG["queued"];
+              const progress =
+                batch.total_count > 0
+                  ? Math.round((batch.processed_count / batch.total_count) * 100)
+                  : 0;
+
+              return (
+                <div key={batch.id} className="rounded-xl border border-border bg-surface p-4">
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="text-sm font-medium">{batch.name || "Unnamed batch"}</p>
+                    <Badge variant={config?.variant ?? "secondary"} className="gap-1 shrink-0">
+                      {config?.icon} {config?.label}
+                    </Badge>
+                  </div>
+                  <div className="mt-3">
+                    <div className="flex items-center gap-2">
+                      <Progress value={progress} className="h-2 flex-1" />
+                      <span className="text-xs text-muted-foreground whitespace-nowrap">
+                        {batch.processed_count}/{batch.total_count}
+                      </span>
+                    </div>
+                  </div>
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    {new Date(batch.created_at).toLocaleString()}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+        </>
       )}
     </AppShell>
   );

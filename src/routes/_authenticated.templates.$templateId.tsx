@@ -25,6 +25,7 @@ import { useKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts";
 import { jsonValue } from "@/lib/json";
 import { deriveSchema } from "@/lib/template-engine";
 import { makeElement, newId } from "@/lib/starter-templates";
+import { exportTemplate, downloadTemplateJson } from "@/lib/template-io";
 import { EditorCanvas } from "@/components/editor/canvas";
 import { PropertyInspector } from "@/components/editor/property-inspector";
 import { VersionHistory } from "@/components/editor/version-history";
@@ -400,6 +401,22 @@ function EditorPage() {
                   Generate PDF
                 </Button>
               )}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={async () => {
+                  try {
+                    const data = await exportTemplate(templateId);
+                    downloadTemplateJson(data);
+                    toast.success("Template exported");
+                  } catch (err) {
+                    const message = err instanceof Error ? err.message : "Export failed";
+                    toast.error(message);
+                  }
+                }}
+              >
+                <Download className="size-4" /> Export JSON
+              </Button>
             </>
           )}
         </div>
