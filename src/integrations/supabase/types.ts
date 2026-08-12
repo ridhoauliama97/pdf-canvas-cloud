@@ -540,6 +540,44 @@ export type Database = {
           },
         ];
       };
+      usage_counters: {
+        Row: {
+          company_id: string;
+          created_at: string;
+          documents_generated: number;
+          id: string;
+          period: string;
+          storage_bytes: number;
+          updated_at: string;
+        };
+        Insert: {
+          company_id: string;
+          created_at?: string;
+          documents_generated?: number;
+          id?: string;
+          period: string;
+          storage_bytes?: number;
+          updated_at?: string;
+        };
+        Update: {
+          company_id?: string;
+          created_at?: string;
+          documents_generated?: number;
+          id?: string;
+          period?: string;
+          storage_bytes?: number;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "usage_counters_company_id_fkey";
+            columns: ["company_id"];
+            isOneToOne: false;
+            referencedRelation: "companies";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       templates: {
         Row: {
           company_id: string;

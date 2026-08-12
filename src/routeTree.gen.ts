@@ -15,7 +15,9 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as InviteRouteImport } from './routes/invite'
 import { Route as AuthenticatedBatchesRouteImport } from './routes/_authenticated.batches'
 import { Route as AuthenticatedDevelopersRouteImport } from './routes/_authenticated.developers'
+import { Route as AuthenticatedDocumentsRouteImport } from './routes/_authenticated.documents'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated.settings'
+import { Route as AuthenticatedUsageRouteImport } from './routes/_authenticated.usage'
 import { Route as AuthInviteRouteImport } from './routes/auth.invite'
 import { Route as AuthenticatedTemplatesIndexRouteImport } from './routes/_authenticated.templates.index'
 import { Route as AuthenticatedTemplatesTemplateIdRouteImport } from './routes/_authenticated.templates.$templateId'
@@ -55,9 +57,19 @@ const AuthenticatedDevelopersRoute = AuthenticatedDevelopersRouteImport.update({
   path: '/developers',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedDocumentsRoute = AuthenticatedDocumentsRouteImport.update({
+  id: '/documents',
+  path: '/documents',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedUsageRoute = AuthenticatedUsageRouteImport.update({
+  id: '/usage',
+  path: '/usage',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthInviteRoute = AuthInviteRouteImport.update({
@@ -115,7 +127,9 @@ export interface FileRoutesByFullPath {
   '/invite': typeof InviteRoute
   '/batches': typeof AuthenticatedBatchesRoute
   '/developers': typeof AuthenticatedDevelopersRoute
+  '/documents': typeof AuthenticatedDocumentsRoute
   '/settings': typeof AuthenticatedSettingsRoute
+  '/usage': typeof AuthenticatedUsageRoute
   '/auth/invite': typeof AuthInviteRoute
   '/templates/$templateId': typeof AuthenticatedTemplatesTemplateIdRoute
   '/api/v1/templates': typeof ApiV1TemplatesRoute
@@ -132,7 +146,9 @@ export interface FileRoutesByTo {
   '/invite': typeof InviteRoute
   '/batches': typeof AuthenticatedBatchesRoute
   '/developers': typeof AuthenticatedDevelopersRoute
+  '/documents': typeof AuthenticatedDocumentsRoute
   '/settings': typeof AuthenticatedSettingsRoute
+  '/usage': typeof AuthenticatedUsageRoute
   '/auth/invite': typeof AuthInviteRoute
   '/templates/$templateId': typeof AuthenticatedTemplatesTemplateIdRoute
   '/api/v1/templates': typeof ApiV1TemplatesRoute
@@ -151,7 +167,9 @@ export interface FileRoutesById {
   '/invite': typeof InviteRoute
   '/_authenticated/batches': typeof AuthenticatedBatchesRoute
   '/_authenticated/developers': typeof AuthenticatedDevelopersRoute
+  '/_authenticated/documents': typeof AuthenticatedDocumentsRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
+  '/_authenticated/usage': typeof AuthenticatedUsageRoute
   '/auth/invite': typeof AuthInviteRoute
   '/_authenticated/templates/$templateId': typeof AuthenticatedTemplatesTemplateIdRoute
   '/api/v1/templates': typeof ApiV1TemplatesRoute
@@ -170,7 +188,9 @@ export interface FileRouteTypes {
     | '/invite'
     | '/batches'
     | '/developers'
+    | '/documents'
     | '/settings'
+    | '/usage'
     | '/auth/invite'
     | '/templates/$templateId'
     | '/api/v1/templates'
@@ -187,7 +207,9 @@ export interface FileRouteTypes {
     | '/invite'
     | '/batches'
     | '/developers'
+    | '/documents'
     | '/settings'
+    | '/usage'
     | '/auth/invite'
     | '/templates/$templateId'
     | '/api/v1/templates'
@@ -205,7 +227,9 @@ export interface FileRouteTypes {
     | '/invite'
     | '/_authenticated/batches'
     | '/_authenticated/developers'
+    | '/_authenticated/documents'
     | '/_authenticated/settings'
+    | '/_authenticated/usage'
     | '/auth/invite'
     | '/_authenticated/templates/$templateId'
     | '/api/v1/templates'
@@ -274,11 +298,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDevelopersRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/documents': {
+      id: '/_authenticated/documents'
+      path: '/documents'
+      fullPath: '/documents'
+      preLoaderRoute: typeof AuthenticatedDocumentsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/settings': {
       id: '/_authenticated/settings'
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof AuthenticatedSettingsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/usage': {
+      id: '/_authenticated/usage'
+      path: '/usage'
+      fullPath: '/usage'
+      preLoaderRoute: typeof AuthenticatedUsageRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/auth/invite': {
@@ -350,7 +388,9 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedRouteChildren {
   AuthenticatedBatchesRoute: typeof AuthenticatedBatchesRoute
   AuthenticatedDevelopersRoute: typeof AuthenticatedDevelopersRoute
+  AuthenticatedDocumentsRoute: typeof AuthenticatedDocumentsRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
+  AuthenticatedUsageRoute: typeof AuthenticatedUsageRoute
   AuthenticatedTemplatesTemplateIdRoute: typeof AuthenticatedTemplatesTemplateIdRoute
   AuthenticatedTemplatesIndexRoute: typeof AuthenticatedTemplatesIndexRoute
 }
@@ -358,7 +398,9 @@ interface AuthenticatedRouteChildren {
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedBatchesRoute: AuthenticatedBatchesRoute,
   AuthenticatedDevelopersRoute: AuthenticatedDevelopersRoute,
+  AuthenticatedDocumentsRoute: AuthenticatedDocumentsRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
+  AuthenticatedUsageRoute: AuthenticatedUsageRoute,
   AuthenticatedTemplatesTemplateIdRoute: AuthenticatedTemplatesTemplateIdRoute,
   AuthenticatedTemplatesIndexRoute: AuthenticatedTemplatesIndexRoute,
 }

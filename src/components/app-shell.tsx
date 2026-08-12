@@ -17,11 +17,11 @@ import { cn } from "@/lib/utils";
 
 const NAV = [
   { to: "/templates", label: "Templates", icon: LayoutTemplate, ready: true },
-  { to: "/settings", label: "Workspace", icon: Building2, ready: true },
-  { to: "/templates", label: "Document history", icon: History, ready: false },
+  { to: "/documents", label: "Document history", icon: History, ready: true },
   { to: "/batches", label: "Batches", icon: Layers, ready: true },
+  { to: "/usage", label: "Usage & billing", icon: Wallet, ready: true },
+  { to: "/settings", label: "Workspace", icon: Building2, ready: true },
   { to: "/developers", label: "Developers", icon: Terminal, ready: true },
-  { to: "/templates", label: "Usage & billing", icon: Wallet, ready: false },
 ] as const;
 
 export function AppShell({
