@@ -119,7 +119,8 @@ function DocumentHistoryPage() {
           generated_by,
           created_at,
           file_url,
-          templates(name)
+          templates(name),
+          profiles(full_name)
         `,
         )
         .order("created_at", { ascending: false });
@@ -130,7 +131,7 @@ function DocumentHistoryPage() {
         template_id: doc.template_id,
         template_name: doc.templates?.name ?? "Unknown Template",
         status: doc.status,
-        generated_by: doc.generated_by,
+        generated_by: doc.profiles?.full_name ?? doc.generated_by ?? "System",
         created_at: doc.created_at,
         file_url: doc.file_url,
       }));
