@@ -23,6 +23,8 @@ import { Route as ApiV1TemplatesRouteImport } from './routes/api.v1.templates'
 import { Route as ApiWebhooksResendRouteImport } from './routes/api.webhooks.resend'
 import { Route as ApiV1DocumentsDocumentIdRouteImport } from './routes/api.v1.documents.$documentId'
 import { Route as ApiV1DocumentsGenerateRouteImport } from './routes/api.v1.documents.generate'
+import { Route as ApiV1OauthIntrospectRouteImport } from './routes/api.v1.oauth.introspect'
+import { Route as ApiV1OauthTokenRouteImport } from './routes/api.v1.oauth.token'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -96,6 +98,16 @@ const ApiV1DocumentsGenerateRoute = ApiV1DocumentsGenerateRouteImport.update({
   path: '/api/v1/documents/generate',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiV1OauthIntrospectRoute = ApiV1OauthIntrospectRouteImport.update({
+  id: '/api/v1/oauth/introspect',
+  path: '/api/v1/oauth/introspect',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiV1OauthTokenRoute = ApiV1OauthTokenRouteImport.update({
+  id: '/api/v1/oauth/token',
+  path: '/api/v1/oauth/token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -111,6 +123,8 @@ export interface FileRoutesByFullPath {
   '/templates/': typeof AuthenticatedTemplatesIndexRoute
   '/api/v1/documents/$documentId': typeof ApiV1DocumentsDocumentIdRoute
   '/api/v1/documents/generate': typeof ApiV1DocumentsGenerateRoute
+  '/api/v1/oauth/introspect': typeof ApiV1OauthIntrospectRoute
+  '/api/v1/oauth/token': typeof ApiV1OauthTokenRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -126,6 +140,8 @@ export interface FileRoutesByTo {
   '/templates': typeof AuthenticatedTemplatesIndexRoute
   '/api/v1/documents/$documentId': typeof ApiV1DocumentsDocumentIdRoute
   '/api/v1/documents/generate': typeof ApiV1DocumentsGenerateRoute
+  '/api/v1/oauth/introspect': typeof ApiV1OauthIntrospectRoute
+  '/api/v1/oauth/token': typeof ApiV1OauthTokenRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -143,6 +159,8 @@ export interface FileRoutesById {
   '/_authenticated/templates/': typeof AuthenticatedTemplatesIndexRoute
   '/api/v1/documents/$documentId': typeof ApiV1DocumentsDocumentIdRoute
   '/api/v1/documents/generate': typeof ApiV1DocumentsGenerateRoute
+  '/api/v1/oauth/introspect': typeof ApiV1OauthIntrospectRoute
+  '/api/v1/oauth/token': typeof ApiV1OauthTokenRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -160,6 +178,8 @@ export interface FileRouteTypes {
     | '/templates/'
     | '/api/v1/documents/$documentId'
     | '/api/v1/documents/generate'
+    | '/api/v1/oauth/introspect'
+    | '/api/v1/oauth/token'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -175,6 +195,8 @@ export interface FileRouteTypes {
     | '/templates'
     | '/api/v1/documents/$documentId'
     | '/api/v1/documents/generate'
+    | '/api/v1/oauth/introspect'
+    | '/api/v1/oauth/token'
   id:
     | '__root__'
     | '/'
@@ -191,6 +213,8 @@ export interface FileRouteTypes {
     | '/_authenticated/templates/'
     | '/api/v1/documents/$documentId'
     | '/api/v1/documents/generate'
+    | '/api/v1/oauth/introspect'
+    | '/api/v1/oauth/token'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -202,6 +226,8 @@ export interface RootRouteChildren {
   ApiWebhooksResendRoute: typeof ApiWebhooksResendRoute
   ApiV1DocumentsDocumentIdRoute: typeof ApiV1DocumentsDocumentIdRoute
   ApiV1DocumentsGenerateRoute: typeof ApiV1DocumentsGenerateRoute
+  ApiV1OauthIntrospectRoute: typeof ApiV1OauthIntrospectRoute
+  ApiV1OauthTokenRoute: typeof ApiV1OauthTokenRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -304,6 +330,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiV1DocumentsGenerateRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/v1/oauth/introspect': {
+      id: '/api/v1/oauth/introspect'
+      path: '/api/v1/oauth/introspect'
+      fullPath: '/api/v1/oauth/introspect'
+      preLoaderRoute: typeof ApiV1OauthIntrospectRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/v1/oauth/token': {
+      id: '/api/v1/oauth/token'
+      path: '/api/v1/oauth/token'
+      fullPath: '/api/v1/oauth/token'
+      preLoaderRoute: typeof ApiV1OauthTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -346,6 +386,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiWebhooksResendRoute: ApiWebhooksResendRoute,
   ApiV1DocumentsDocumentIdRoute: ApiV1DocumentsDocumentIdRoute,
   ApiV1DocumentsGenerateRoute: ApiV1DocumentsGenerateRoute,
+  ApiV1OauthIntrospectRoute: ApiV1OauthIntrospectRoute,
+  ApiV1OauthTokenRoute: ApiV1OauthTokenRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

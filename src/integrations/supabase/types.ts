@@ -91,6 +91,104 @@ export type Database = {
         };
         Relationships: [];
       };
+      oauth_clients: {
+        Row: {
+          active: boolean;
+          client_id: string;
+          client_secret_hash: string;
+          company_id: string;
+          created_at: string;
+          id: string;
+          name: string;
+          redirect_uris: string[];
+          scopes: string[];
+          updated_at: string;
+        };
+        Insert: {
+          active?: boolean;
+          client_id: string;
+          client_secret_hash: string;
+          company_id: string;
+          created_at?: string;
+          id?: string;
+          name: string;
+          redirect_uris?: string[];
+          scopes?: string[];
+          updated_at?: string;
+        };
+        Update: {
+          active?: boolean;
+          client_id?: string;
+          client_secret_hash?: string;
+          company_id?: string;
+          created_at?: string;
+          id?: string;
+          name?: string;
+          redirect_uris?: string[];
+          scopes?: string[];
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "oauth_clients_company_id_fkey";
+            columns: ["company_id"];
+            isOneToOne: false;
+            referencedRelation: "companies";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      oauth_tokens: {
+        Row: {
+          access_token_hash: string;
+          client_id: string;
+          company_id: string;
+          created_at: string;
+          expires_at: string;
+          id: string;
+          refresh_token_hash: string | null;
+          scopes: string[];
+          user_id: string;
+        };
+        Insert: {
+          access_token_hash: string;
+          client_id: string;
+          company_id: string;
+          created_at?: string;
+          expires_at: string;
+          id?: string;
+          refresh_token_hash?: string | null;
+          scopes: string[];
+          user_id: string;
+        };
+        Update: {
+          access_token_hash?: string;
+          client_id?: string;
+          company_id?: string;
+          created_at?: string;
+          expires_at?: string;
+          id?: string;
+          refresh_token_hash?: string | null;
+          scopes?: string[];
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "oauth_tokens_client_id_fkey";
+            columns: ["client_id"];
+            isOneToOne: false;
+            referencedRelation: "oauth_clients";
+            referencedColumns: ["client_id"];
+          },
+          {
+            foreignKeyName: "oauth_tokens_company_id_fkey";
+            columns: ["company_id"];
+            isOneToOne: false;
+            referencedRelation: "companies";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       batches: {
         Row: {
           company_id: string;
