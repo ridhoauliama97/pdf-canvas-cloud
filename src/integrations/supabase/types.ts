@@ -321,6 +321,7 @@ export type Database = {
           company_id: string;
           created_at: string;
           data_snapshot: Json;
+          error: string | null;
           file_url: string | null;
           generated_by: string | null;
           id: string;
@@ -332,6 +333,7 @@ export type Database = {
           company_id: string;
           created_at?: string;
           data_snapshot?: Json;
+          error?: string | null;
           file_url?: string | null;
           generated_by?: string | null;
           id?: string;
@@ -343,6 +345,7 @@ export type Database = {
           company_id?: string;
           created_at?: string;
           data_snapshot?: Json;
+          error?: string | null;
           file_url?: string | null;
           generated_by?: string | null;
           id?: string;

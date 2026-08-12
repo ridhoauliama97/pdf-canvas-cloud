@@ -58,6 +58,7 @@ interface DocumentRow {
   generated_by: string | null;
   created_at: string;
   file_url: string | null;
+  error: string | null;
 }
 
 interface TemplateOption {
@@ -123,6 +124,7 @@ function DocumentHistoryPage() {
           generated_by,
           created_at,
           file_url,
+          error,
           templates(name)
         `,
         )
@@ -178,6 +180,7 @@ function DocumentHistoryPage() {
           generated_by: profilesMap[doc.generated_by] ?? doc.generated_by ?? "System",
           created_at: doc.created_at,
           file_url: doc.file_url,
+          error: doc.error,
         };
       });
     },
@@ -450,17 +453,27 @@ function DocumentHistoryPage() {
                   <TableRow key={doc.id}>
                     <TableCell className="font-medium">{doc.template_name}</TableCell>
                     <TableCell>
-                      <Badge
-                        variant={
-                          doc.status === "completed"
-                            ? "default"
-                            : doc.status === "failed"
-                              ? "destructive"
-                              : "secondary"
-                        }
-                      >
-                        {doc.status}
-                      </Badge>
+                      <div className="space-y-1">
+                        <Badge
+                          variant={
+                            doc.status === "completed"
+                              ? "default"
+                              : doc.status === "failed"
+                                ? "destructive"
+                                : "secondary"
+                          }
+                        >
+                          {doc.status}
+                        </Badge>
+                        {doc.status === "failed" && doc.error && (
+                          <p
+                            className="text-xs text-destructive max-w-[200px] truncate"
+                            title={doc.error}
+                          >
+                            {doc.error}
+                          </p>
+                        )}
+                      </div>
                     </TableCell>
                     <TableCell>
                       <Badge variant="outline" className="text-xs">

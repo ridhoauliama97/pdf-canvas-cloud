@@ -94,17 +94,7 @@ async function processBatchItem(
     throw new Error("Template version has invalid layout or page configuration");
   }
 
-  // 4. Render PDF
-  let pdfBuffer: Buffer;
-  try {
-    pdfBuffer = await renderPdf(layout, page, data);
-  } catch (renderError) {
-    throw new Error(
-      `PDF rendering failed: ${renderError instanceof Error ? renderError.message : "Unknown error"}`,
-    );
-  }
-
-  // 5. Create document record (status: generating)
+  // 4. Create document record FIRST (status: generating)
   const documentId = crypto.randomUUID();
   const { error: insertError } = await supabaseAdmin.from("documents").insert({
     id: documentId,
@@ -120,7 +110,21 @@ async function processBatchItem(
     throw new Error(`Failed to create document record: ${insertError.message}`);
   }
 
-  // 6. Upload PDF to storage
+  // 6. Render PDF
+  let pdfBuffer: Buffer;
+  try {
+    pdfBuffer = await renderPdf(layout, page, data);
+  } catch (renderError) {
+    // Mark document as failed with error message
+    const errorMsg = renderError instanceof Error ? renderError.message : "Unknown render error";
+    await supabaseAdmin
+      .from("documents")
+      .update({ status: "failed", error: errorMsg })
+      .eq("id", documentId);
+    throw new Error(`PDF rendering failed: ${errorMsg}`);
+  }
+
+  // 7. Upload PDF to storage
   const storagePath = `${companyId}/documents/${documentId}.pdf`;
   const { error: uploadError } = await supabaseAdmin.storage
     .from("reportflow-bucket")
@@ -130,11 +134,14 @@ async function processBatchItem(
     });
 
   if (uploadError) {
-    await supabaseAdmin.from("documents").update({ status: "failed" }).eq("id", documentId);
+    await supabaseAdmin
+      .from("documents")
+      .update({ status: "failed", error: uploadError.message })
+      .eq("id", documentId);
     throw new Error(`Failed to upload PDF: ${uploadError.message}`);
   }
 
-  // 7. Update document record with file URL and completed status
+  // 8. Update document record with file URL and completed status
   const { error: updateError } = await supabaseAdmin
     .from("documents")
     .update({

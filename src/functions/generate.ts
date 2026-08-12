@@ -98,17 +98,7 @@ export const generateDocument = createServerFn({ method: "POST" as const })
       throw new Error("Template version has invalid layout or page configuration");
     }
 
-    // 4. Render PDF
-    let pdfBuffer: Buffer;
-    try {
-      pdfBuffer = await renderPdf(layout, page, data.data);
-    } catch (renderError) {
-      throw new Error(
-        `PDF rendering failed: ${renderError instanceof Error ? renderError.message : "Unknown error"}`,
-      );
-    }
-
-    // 5. Create document record first (status: generating)
+    // 4. Create document record FIRST (status: generating)
     const documentId = crypto.randomUUID();
     const { error: insertError } = await supabaseAdmin.from("documents").insert({
       id: documentId,
@@ -124,6 +114,19 @@ export const generateDocument = createServerFn({ method: "POST" as const })
       throw new Error(`Failed to create document record: ${insertError.message}`);
     }
 
+    // 5. Render PDF
+    let pdfBuffer: Buffer;
+    try {
+      pdfBuffer = await renderPdf(layout, page, data.data);
+    } catch (renderError) {
+      const errorMsg = renderError instanceof Error ? renderError.message : "Unknown render error";
+      await supabaseAdmin
+        .from("documents")
+        .update({ status: "failed", error: errorMsg })
+        .eq("id", documentId);
+      throw new Error(`PDF rendering failed: ${errorMsg}`);
+    }
+
     // 6. Upload PDF to storage
     const storagePath = `${companyId}/documents/${documentId}.pdf`;
     const { error: uploadError } = await supabaseAdmin.storage
@@ -134,9 +137,10 @@ export const generateDocument = createServerFn({ method: "POST" as const })
       });
 
     if (uploadError) {
-      // Mark document as failed if upload fails
-      await supabaseAdmin.from("documents").update({ status: "failed" }).eq("id", documentId);
-
+      await supabaseAdmin
+        .from("documents")
+        .update({ status: "failed", error: uploadError.message })
+        .eq("id", documentId);
       throw new Error(`Failed to upload PDF: ${uploadError.message}`);
     }
 
